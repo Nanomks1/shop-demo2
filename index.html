@@ -1,85 +1,121 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>نبض المحل</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1e293b">
+<link rel="manifest" href="manifest.json">
+<title>محلنا</title>
+<style>
+:root{--bg:#f4f6f8;--c:#fff;--t:#1a202c;--m:#718096;--b:#e2e8f0;--p:#2563eb}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--c:#1e293b;--t:#f1f5f9;--m:#94a3b8;--b:#334155;--p:#3b82f6}}
+*{box-sizing:border-box}
+body{margin:0;font:16px system-ui,sans-serif;background:var(--bg);color:var(--t);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{position:sticky;top:0;background:var(--c);border-bottom:1px solid var(--b);padding:10px 12px;display:flex;gap:8px;align-items:center;z-index:5}
+header h1{font-size:18px;margin:0;flex:1}
+main{padding:12px;max-width:640px;margin:auto}
+input,button,textarea{font:inherit;color:inherit}
+input,textarea{width:100%;padding:10px;border:1px solid var(--b);border-radius:10px;background:var(--c);margin:4px 0}
+button{border:0;border-radius:10px;padding:10px 14px;background:var(--p);color:#fff}
+button.g{background:var(--c);color:var(--t);border:1px solid var(--b)}
+.card{background:var(--c);color:var(--t);border:1px solid var(--b);border-radius:14px;padding:12px;margin:8px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid .card{margin:0;text-align:center;font-size:17px;padding:18px 8px}
+.row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.sp{flex:1}
+.m{color:var(--m);font-size:13px}
+.dot{width:38px;height:38px;border-radius:50%;border:3px solid transparent;opacity:.35;padding:0}
+.dot.on{opacity:1;border-color:var(--t)}
+.old{opacity:.6}
+.chip{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;margin:3px;border-radius:16px;background:var(--bg);border:1px solid var(--b)}
+.chip.on{background:var(--p);color:#fff}
+.chip.h{border-color:#22c55e}
+.chip.n{border-color:#ef4444}
+dialog{border:0;border-radius:14px;background:var(--c);color:var(--t);width:90%;max-width:420px;max-height:90vh;overflow:auto}
+</style>
 </head>
 <body>
-
-  <!-- الهيدر الهادئ -->
-  <header class="app-bar">
-    <div class="brand-area">
-      <span class="status-dot-live"></span>
-      <h1 id="ui-shop-name">نبض المحل</h1>
-    </div>
-    <div class="bar-actions">
-      <button class="chip-staff" onclick="cycleStaff()">
-        <span id="ui-staff-name">المعلم</span>
-      </button>
-      <button class="icon-circle" onclick="openSettingsSheet()" title="الإعدادات">⚙️</button>
-    </div>
-  </header>
-
-  <main class="app-shell">
-
-    <!-- شريط البحث الذكي المدمج -->
-    <div class="search-bar">
-      <span class="search-ico">🔍</span>
-      <input type="text" id="global-search" placeholder="ابحث عن هاتف، زجاج، بوشيط، أو زبون..." oninput="onSearchInput(this.value)">
-      <button id="clear-search" class="clear-btn hidden" onclick="clearSearch()">✕</button>
-    </div>
-
-    <!-- شريط تنبيه البدائل الفوري (يظهر فقط عند البحث عن زجاج) -->
-    <div id="compat-toast" class="compat-toast hidden"></div>
-
-    <!-- بطاقة النبض السريع (تختصر حالة المحل وتفتح التقرير أو طلبات الزبائن) -->
-    <div class="pulse-banner">
-      <div class="pulse-main" onclick="switchSection('report')">
-        <div class="pulse-label">قائمة المعلم (النواقص)</div>
-        <div class="pulse-value"><span id="stat-shortages">0</span> نواقص مسجلة ←</div>
-      </div>
-      <div class="pulse-divider"></div>
-      <button class="pulse-quick-btn" onclick="openCustomerReqSheet()">
-        <span>🗣️ زبون سأل</span>
-      </button>
-    </div>
-
-    <!-- شريط الأقسام الكبسولي (Segmented Control) -->
-    <nav class="seg-nav">
-      <button class="seg-btn active" id="seg-repairs" onclick="switchSection('repairs')">
-        الصيانة <span class="mini-badge" id="badge-repairs">0</span>
-      </button>
-      <button class="seg-btn" id="seg-phones" onclick="switchSection('phones')">الهواتف</button>
-      <button class="seg-btn" id="seg-glass" onclick="switchSection('glass')">الزجاج</button>
-      <button class="seg-btn" id="seg-pochette" onclick="switchSection('pochette')">البوشيط</button>
-      <button class="seg-btn" id="seg-acc" onclick="switchSection('acc')">إكسسوار</button>
-      <button class="seg-btn" id="seg-report" onclick="switchSection('report')">التقرير</button>
-    </nav>
-
-    <!-- شريط الفلاتر الفرعية (يتغير حسب القسم) -->
-    <div id="sub-filters" class="sub-filters"></div>
-
-    <!-- قائمة العناصر النظيفة (Zero-Clutter List) -->
-    <div id="list-container" class="list-container"></div>
-
-  </main>
-
-  <!-- الزر العائم الذكي للإضافة السريعة بيد واحدة (FAB) -->
-  <button class="fab-btn" id="fab-main" onclick="handleFabClick()">
-    <span class="fab-plus">＋</span>
-    <span id="fab-label">استلام جهاز</span>
-  </button>
-
-  <!-- النافذة السفلية المنزلقة (Bottom Sheet) -->
-  <div id="sheet-overlay" class="sheet-overlay hidden" onclick="if(event.target===this) closeSheet()">
-    <div class="sheet-panel">
-      <div class="sheet-pill"></div>
-      <div id="sheet-content"></div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+<header>
+<button id="b" class="g" hidden onclick="BK()">→</button>
+<h1 id="t"></h1>
+<button id="s" class="g" onclick="N()"></button>
+</header>
+<main id="m"></main>
+<dialog id="d"><div>
+<input id="n" placeholder="الاسم / الموديل">
+<input id="p" placeholder="السعر">
+<input id="mo" placeholder="موديلات أو أسماء بديلة (اختياري)">
+<div id="cw"><input id="c" type="number" placeholder="العدد"></div>
+<div id="px"><div id="tg"></div><input id="mn" placeholder="أقل سعر (اختياري)"><label class="row"><input id="rs" type="checkbox" style="width:auto"> 🔒 محجوز لزبون (اكتب العربون في الملاحظة)</label></div>
+<textarea id="nt" placeholder="ملاحظة (مثال: بقي 5 حبات)"></textarea>
+<div class="row"><button class="sp" onclick="SV()">حفظ</button><button class="g" onclick="$('d').close()">إلغاء</button><button id="del" class="g" onclick="DL()">🗑</button></div>
+<button id="cp" class="g" style="width:100%" onclick="CP()">نسخ لكل الأنواع</button>
+</div></dialog>
+<script>
+const S={phones:'الهواتف',glass:'الأنتي كاس',case:'البوشيط',acc:'الإكسسوارات'};
+const L={g:'#22c55e',y:'#eab308',r:'#ef4444'},EM={g:'🟢',y:'🟡',r:'🔴'};
+const TL={col:'اللون',cap:'السعة',cond:'الحالة'};
+const $=id=>document.getElementById(id);
+let D=JSON.parse(localStorage.getItem('shop2')||'null')||{staff:'',items:[],tags:{col:['أسود','أبيض','أزرق','أحمر'],cap:['64GB','128GB','256GB'],cond:['جديد','مستعمل']}},V={v:'home'},Q='',ED,X={};
+const save=()=>localStorage.setItem('shop2',JSON.stringify(D));
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const find=id=>D.items.find(x=>x.id==id);
+const kids=id=>D.items.filter(x=>x.par==id);
+const sub=id=>[id,...kids(id).flatMap(k=>sub(k.id))];
+const days=i=>Math.floor((Date.now()-i.at)/864e5);
+const ord=a=>a.sort((x,y)=>'ryg'.indexOf(x.st)-'ryg'.indexOf(y.st));
+const pth=i=>(i.par?pth(find(i.par))+' › ':'')+i.name;
+const needs=i=>i.sec=='case'&&(i.need||[]).length>0;
+const bad=k=>ord(D.items.filter(i=>(i.st!='g'||needs(i))&&(!k||i.sec==k)));
+const leaf=s=>s=='phones'||s=='case';
+const touch=i=>{i.by=D.staff;i.at=Date.now();save();R()};
+const chips=(i,k)=>(i[k]||[]).map((t,j)=>`<span class="chip ${k=='have'?'h':'n'}"><span onclick="MV('${i.id}','${k}',${j})">${esc(t)}</span><b onclick="RM('${i.id}','${k}',${j})">×</b></span>`).join('');
+function item(i,p){const n=days(i),x=i.x||{},ph=i.sec=='phones',k=kids(i.id).length;
+return `<div class="card ${n>10?'old':''}"><div class="row"><b class="sp" onclick="${leaf(i.sec)?`E('${i.id}')`:`O('${i.id}')`}">${esc(i.name)}${k?' ‹'+k:''}</b><span>${esc(i.price)}</span><button class="g" onclick="E('${i.id}')">✎</button></div>`
++(p?`<div class="m">${esc(S[i.sec]+' › '+pth(i))}</div>`:'')
++(i.models?`<div class="m">${esc(i.models)}</div>`:'')
++(ph?`<div class="m">${[x.col,x.cap,x.cond].filter(Boolean).map(esc).join(' · ')}${x.min?' · أقل سعر '+esc(x.min):''}${x.res?' · 🔒 محجوز':''}</div><div class="row"><button class="g" onclick="C('${i.id}',-1)">−</button><b>${i.cnt}</b><button class="g" onclick="C('${i.id}',1)">+</button></div>`:'')
++(i.sec=='case'?`<div class="m">متوفر:</div><div>${chips(i,'have')}<button class="g" onclick="AT('${i.id}','have')">+</button></div><div class="m">ناقص:</div><div>${chips(i,'need')}<button class="g" onclick="AT('${i.id}','need')">+</button></div>`:'')
++`<div class="row">${['g','y','r'].map(s=>`<button class="dot ${i.st==s?'on':''}" style="background:${L[s]}" onclick="T('${i.id}','${s}')"></button>`).join('')}<span class="m sp">${esc(i.note)}</span></div><div class="m">${esc(i.by)} · ${n?'قبل '+n+' يوم':'اليوم'}${n>10?' · غير مؤكد':''}</div></div>`}
+const list=(a,p)=>ord(a).map(i=>item(i,p)).join('')||'<p class="m">لا شيء بعد</p>';
+const line=i=>`${i.st=='r'?'🔴':i.st=='y'?'🟡':'🟠'} ${pth(i)}${needs(i)?' — ناقص: '+i.need.join('، '):''}${i.note?' — '+i.note:''}`;
+function txt(){return Object.keys(S).map(k=>{const b=bad(k);return b.length?`*${S[k]}*\n`+b.map(line).join('\n'):''}).filter(Boolean).join('\n\n')||'لا نواقص'}
+function rep(){const a=Object.keys(S).filter(k=>bad(k).length).map(k=>`<h3>${S[k]}</h3>`+bad(k).map(i=>`<div class="card"><div class="row"><b class="sp">${esc(line(i))}</b><button class="g" onclick="BY('${i.id}')">تم الشراء</button></div><div class="m">${esc(i.by)}</div></div>`).join('')).join('');
+return (a||'<p class="m">لا نواقص 🎉</p>')+`<div class="row"><button class="sp" onclick="navigator.clipboard.writeText(txt()).then(()=>alert('تم النسخ'))">نسخ</button><button class="sp" onclick="location.href='https://wa.me/?text='+encodeURIComponent(txt())">واتساب</button></div>`}
+function RS(){const q=Q.trim().toLowerCase();
+if(!q){$('res').innerHTML=`<div class="grid">${Object.keys(S).map(k=>`<button class="card" onclick="V={v:'n',sec:'${k}',par:''};R()">${S[k]}<div class="m">${bad(k).length?bad(k).length+' ناقص':'—'}</div></button>`).join('')}</div><button style="width:100%;margin-top:10px" onclick="V={v:'rep'};R()">📋 التقرير (${bad().length})</button>`;return}
+const m=D.items.filter(i=>(i.name+' '+(i.models||'')+' '+i.note+' '+pth(i)).toLowerCase().includes(q));
+const g=m.filter(i=>i.sec=='glass'&&i.par);
+$('res').innerHTML=(g.length?`<div class="card"><b>🔎 زجاج يطابق:</b>${g.map(i=>`<div>${EM[i.st]} ${esc(find(i.par).name)} — ${esc(i.name)}${i.models?' ('+esc(i.models)+')':''}</div>`).join('')}</div>`:'')+list(m.filter(i=>!(i.sec=='glass'&&i.par)).slice(0,40),true)}
+function R(){const h0=V.v=='home';$('b').hidden=h0;$('t').textContent=h0?'محلنا':V.v=='rep'?'التقرير':V.par?find(V.par).name:S[V.sec];$('s').textContent='👤 '+D.staff;
+$('m').innerHTML=h0?`<input id="q" placeholder="🔍 بحث (موديل، اسم، ملاحظة)" value="${esc(Q)}" oninput="Q=this.value;RS()"><div id="res"></div>`:V.v=='rep'?rep():`<button style="width:100%" onclick="E(0,'${V.sec}','${V.par}')">+ إضافة</button>`+list(D.items.filter(i=>i.sec==V.sec&&i.par==V.par));
+if(h0)RS()}
+function O(id){V={v:'n',sec:find(id).sec,par:id};R()}
+function BK(){V=V.v=='n'&&V.par?{v:'n',sec:V.sec,par:find(V.par).par}:{v:'home'};R()}
+function N(){D.staff=prompt('اسمك؟',D.staff)||D.staff;save();R()}
+function T(id,s){const i=find(id);i.st=s;touch(i)}
+function BY(id){const i=find(id);i.st='g';i.note='';if(i.need){i.have=(i.have||[]).concat(i.need);i.need=[]}touch(i)}
+function C(id,d){const i=find(id);i.cnt=Math.max(0,i.cnt+d);i.st=i.cnt?(i.st=='r'?'g':i.st):'r';touch(i)}
+function MV(id,k,j){const i=find(id),o=k=='have'?'need':'have';i[o]=(i[o]||[]).concat(i[k].splice(j,1));touch(i)}
+function RM(id,k,j){const i=find(id);i[k].splice(j,1);touch(i)}
+function AT(id,k){const t=(prompt(k=='have'?'وسم متوفر':'وسم ناقص')||'').trim();if(!t)return;const i=find(id);(i[k]=i[k]||[]).push(t);touch(i)}
+function TG(){$('tg').innerHTML=Object.keys(TL).map(k=>`<div class="m">${TL[k]}</div><div>${D.tags[k].map((v,j)=>`<span class="chip ${X[k]==v?'on':''}" onclick="PK('${k}',${j})">${esc(v)}</span>`).join('')}<span class="chip" onclick="NT('${k}')">+ جديد</span></div>`).join('')}
+function PK(k,j){const v=D.tags[k][j];X[k]=X[k]==v?'':v;TG()}
+function NT(k){const t=(prompt('وسم جديد')||'').trim();if(t){D.tags[k].push(t);X[k]=t;save();TG()}}
+function E(id,sec,par){ED=id?find(id):{sec,par:par||''};const ph=ED.sec=='phones';X={...(ED.x||{})};
+$('n').value=ED.name||'';$('p').value=ED.price||'';$('mo').value=ED.models||'';$('nt').value=ED.note||'';$('c').value=id?ED.cnt:1;$('mn').value=X.min||'';$('rs').checked=!!X.res;
+$('cw').hidden=$('px').hidden=!ph;$('mo').hidden=ph;$('del').hidden=!id;$('cp').hidden=!(id&&ED.sec=='glass'&&ED.par);if(ph)TG();$('d').showModal()}
+function SV(){const n=$('n').value.trim();if(!n)return;if(!ED.id){ED.id=uid();ED.st='g';ED.cnt=0;ED.have=[];ED.need=[];D.items.push(ED)}
+Object.assign(ED,{name:n,price:$('p').value,models:$('mo').value,note:$('nt').value});
+if(ED.sec=='phones'){ED.cnt=+$('c').value||0;if(!ED.cnt)ED.st='r';X.min=$('mn').value;X.res=$('rs').checked;ED.x=X}
+$('d').close();touch(ED)}
+function DL(){if(confirm('حذف مع كل ما بداخله؟')){const s=sub(ED.id);D.items=D.items.filter(x=>!s.includes(x.id));save();$('d').close();R()}}
+function CP(){D.items.filter(t=>t.sec=='glass'&&!t.par&&t.id!=ED.par).forEach(t=>{if(!kids(t.id).some(k=>k.name==ED.name))D.items.push({...ED,id:uid(),par:t.id,st:'g',at:Date.now()})});$('d').close();touch(ED)}
+if(!D.staff){D.staff=prompt('اسمك؟')||'موظف';save()}
+R();
+</script>
+<script src="repair.js"></script>
+<script src="extras.js"></script>
 </body>
 </html>
