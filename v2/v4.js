@@ -1,0 +1,8 @@
+S.guide=S.guide||[];
+const gdCard=g=>`<div class="card"><div class="row2"><b>${esc(g.m)}</b><b style="flex:none;font-size:1.2rem">${esc(g.p)}</b></div><div class="m">${esc(g.f)}${g.n?' · '+esc(g.n):''}</div>${can('price')?`<div class="sub"><button class="btn s sm" onclick="gdEd('${g.id}')">تعديل</button><button class="btn s sm" onclick="gdDel('${g.id}')">حذف</button></div>`:''}</div>`;
+const gdList=q=>{const n=nz(q||'');return S.guide.filter(g=>!n||nz(g.m+g.f+(g.n||'')).includes(n)).sort((a,b)=>a.m.localeCompare(b.m)).map(gdCard).join('')||'<p class="m">لا شيء بعد</p>'};
+VW.gd=()=>({t:'دليل أسعار الإصلاح',h:(can('price')?'<button class="btn" onclick="gdEd(null)">+ إضافة تسعيرة</button>':'')+`<input placeholder="ابحث: موديل أو عطل" value="${esc(V.q)}" oninput="V.q=this.value;$('gdl').innerHTML=gdList(V.q)"><div id="gdl">${gdList(V.q)}</div>`});
+function gdEd(id){if(!can('price'))return toast('للمدير فقط');const g=id?S.guide.find(x=>x.id==id):{};ask(id?'تعديل تسعيرة':'تسعيرة جديدة',[{k:'m',l:'الموديل (مثال: Samsung A12)',v:g.m||''},{k:'f',l:'العطل (مثال: شاشة)',v:g.f||''},{k:'p',l:'السعر',t:'tel',v:g.p||''},{k:'n',l:'ملاحظة (اختياري)',v:g.n||''}]).then(v=>{if(!v)return;if(!v.m.trim()||!v.f.trim()||!v.p.trim())return toast('الموديل والعطل والسعر مطلوبة');upd(()=>{const o={m:v.m.trim(),f:v.f.trim(),p:v.p.trim(),n:v.n.trim()};if(id)Object.assign(g,o);else S.guide.push({id:uid(),...o})})})}
+function gdDel(id){const g=S.guide.find(x=>x.id==id);del('guide',id,g.m+' '+g.f)}
+const _rp4=VW.rp;VW.rp=function(){const r=_rp4();r.h='<button class="btn s" onclick="go(\'gd\')">دليل أسعار الإصلاح</button>'+r.h;return r};
+render();
