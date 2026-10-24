@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="manifest.json">
 <title>محلنا</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -23,5 +24,10 @@
 <script src="v5.js"></script>
 <script src="v6.js"></script>
 <script src="v7.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+</script>
 </body>
 </html>
