@@ -42,7 +42,7 @@ function pickRpFault(f) {
   suggestGuidePrice();
 }
 
-// التحسين (2): الربط التلقائي بين "دليل أسعار الإصلاح" و"استلام هاتف"
+// الربط التلقائي بين "دليل أسعار الإصلاح" و"استلام هاتف"
 function suggestGuidePrice() {
   const dev = nz(($('r_v') || {}).value || '');
   const flt = nz(($('r_f') || {}).value || '');
@@ -66,7 +66,7 @@ function suggestGuidePrice() {
   }
 }
 
-// التحسين (4): كشف الجهاز الراجع (نفس الموديل سُلّم مؤخراً)
+// كشف الجهاز الراجع (نفس الموديل سُلّم مؤخراً)
 function checkDeviceHistory() {
   const dev = nz(($('r_v') || {}).value || '');
   const box = $('rp_dev_hist');
@@ -87,12 +87,10 @@ function checkDeviceHistory() {
 const _rc7 = rc;
 rc = function(r) {
   let h = _rc7(r);
-  // التحسين (1): زر اتصال مباشر واضح بجانب أزرار التحكم
   if (r.tel) {
     const callBtn = `<a href="tel:${esc(r.tel)}" class="btn s sm" style="text-decoration:none;display:inline-flex;align-items:center">📞 اتصال</a>`;
     h = h.replace('<div class="sub">', `<div class="sub">${callBtn}`);
   }
-  // شارة التجربة عند التسليم
   if (r.st == 'dn') {
     const badge = r.tst
       ? `<div class="m" style="color:#16a34a;font-weight:700">✅ جُرِّب مع الزبون وسُلِّم مصلوحاً (${esc(r.dby || '')})</div>`
@@ -135,7 +133,7 @@ rDV = function(id) {
   });
 };
 
-/* ===== 3. التحسين (6): تنبيه قانوني تلقائي في وصل الواتساب للهاتف المنطفئ أو المكسور ===== */
+/* ===== 3. تنبيه قانوني تلقائي في وصل الواتساب للهاتف المنطفئ أو المكسور ===== */
 rWA = function(id, k) {
   const r = rf(id);
   const c = sn1(r.cap) ? ' تكلفة الإصلاح: ' + r.cap.trim() + (r.dep ? '، العربون: ' + r.dep : '') + '.' : '';
@@ -152,77 +150,21 @@ rWA = function(id, k) {
   location.href = 'https://wa.me/' + rnum(r.tel) + '?text=' + encodeURIComponent(`مرحباً ${r.name}، ${s}\nشكراً لثقتكم.`);
 };
 
-/* ===== 4. التحسين (3) و (5): فلاتر نسخ التقرير حسب تاجر الجملة + زر تم الشراء الفوري ===== */
-// جعل شراء البوشيط في التقرير بضغطة واحدة أو عدد اختياري، وتفعيل شراء قطع الصيانة
+/* ===== 4. زر "تم الشراء" لقطع غيار الصيانة داخل التقرير ===== */
 function buyPart(id) {
   const r = rf(id);
   if (!r) return;
   commit('وصلت القطعة ✓', () => { r.part = ''; r.lb = S.me; });
 }
 
-function repTxtBySupplier(mode) {
-  // mode: 'all' | 'parts' (تاجر البياس والشاشات) | 'acc' (تاجر الأنتي كاس والبوشيط والإكسسوارات) | 'phones' (تاجر الهواتف)
-  const L = repLines(), o = [];
-  if (mode == 'all' || mode == 'phones') {
-    const s = stkL();
-    if (s.length && mode == 'all') o.push('*الهواتف المتوفرة*', ...s.map(i => '• ' + stkN(i) + ' — العدد ' + i.cnt + (i.price ? ' — ' + i.price : '')), '');
-    const phOut = L.filter(x => x[0] == 'الهواتف الناقصة');
-    if (phOut.length) {
-      o.push('*الهواتف الناقصة*');
-      phOut.forEach(x => o.push((x[2] == 'r' ? '🔴 ' : '🟡 ') + x[1]));
-      o.push('');
-    }
-  }
-  if (mode == 'all' || mode == 'parts') {
-    const parts = S.rp.filter(r => r.st == 'in' && r.part).map(r => '🔧 ' + r.part + ' (' + r.dev + ')');
-    if (parts.length) {
-      o.push('*قطع غيار الصيانة المطلوبة*');
-      o.push(...parts, '');
-    }
-  }
-  if (mode == 'all' || mode == 'acc') {
-    ['الأنتي كاس', 'البوشيط', 'الإكسسوارات'].forEach(k => {
-      const sub = L.filter(x => x[0] == k);
-      if (sub.length) {
-        o.push('*' + k + '*');
-        sub.forEach(x => o.push((x[2] == 'r' ? '🔴 ' : '🟡 ') + x[1]));
-        o.push('');
-      }
-    });
-  }
-  if (mode == 'all' && S.req.length) {
-    o.push('*طلبات الزبائن*');
-    S.req.forEach(r => o.push('🗣️ ' + r.t));
-  }
-  return o.join('\n').trim() || 'لا توجد نواقص في هذا القسم';
-}
-
-function copySupplierReport(mode, label) {
-  const txt = repTxtBySupplier(mode);
-  navigator.clipboard.writeText(txt).then(() => toast('تم نسخ: ' + label));
-}
-
 const _rep7 = VW.rep;
 VW.rep = function() {
   const o = _rep7();
-  // إضافة زر "تم الشراء" لقطع غيار الصيانة
   S.rp.filter(r => r.st == 'in' && r.part).forEach(r => {
     const oldHtml = `<div class="card">قطعة: ${esc(r.part)} <span class="m">(${esc(r.dev)} — ${esc(r.name)})</span></div>`;
     const newHtml = `<div class="card row2"><span style="flex:1">🔧 قطعة: <b>${esc(r.part)}</b> <span class="m">(${esc(r.dev)} — ${esc(r.name)})</span></span><button class="btn sm" onclick="buyPart('${r.id}')">تم الشراء</button></div>`;
     o.h = o.h.replace(oldHtml, () => newHtml);
   });
-
-  // أزرار النسخ السريع حسب تاجر الجملة في أعلى التقرير
-  const supplierBtns = `
-    <div class="card">
-      <b>📋 نسخ مخصص حسب تاجر الجملة:</b>
-      <div class="sub">
-        <button class="btn s sm" onclick="copySupplierReport('parts','قائمة قطع الصيانة')">🔧 تاجر البياس (قطع الصيانة)</button>
-        <button class="btn s sm" onclick="copySupplierReport('acc','قائمة الزجاج والبوشيط والإكسسوار')">📲 تاجر الأنتي كاس والإكسسوار</button>
-        <button class="btn s sm" onclick="copySupplierReport('phones','قائمة الهواتف الناقصة')">📱 تاجر الهواتف</button>
-      </div>
-    </div>`;
-  o.h = supplierBtns + o.h;
   return o;
 };
 
