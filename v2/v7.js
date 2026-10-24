@@ -42,7 +42,6 @@ function pickRpFault(f) {
   suggestGuidePrice();
 }
 
-// الربط التلقائي بين "دليل أسعار الإصلاح" و"استلام هاتف"
 function suggestGuidePrice() {
   const dev = nz(($('r_v') || {}).value || '');
   const flt = nz(($('r_f') || {}).value || '');
@@ -66,7 +65,6 @@ function suggestGuidePrice() {
   }
 }
 
-// كشف الجهاز الراجع (نفس الموديل سُلّم مؤخراً)
 function checkDeviceHistory() {
   const dev = nz(($('r_v') || {}).value || '');
   const box = $('rp_dev_hist');
@@ -133,7 +131,6 @@ rDV = function(id) {
   });
 };
 
-/* ===== 3. تنبيه قانوني تلقائي في وصل الواتساب للهاتف المنطفئ أو المكسور ===== */
 rWA = function(id, k) {
   const r = rf(id);
   const c = sn1(r.cap) ? ' تكلفة الإصلاح: ' + r.cap.trim() + (r.dep ? '، العربون: ' + r.dep : '') + '.' : '';
@@ -150,25 +147,166 @@ rWA = function(id, k) {
   location.href = 'https://wa.me/' + rnum(r.tel) + '?text=' + encodeURIComponent(`مرحباً ${r.name}، ${s}\nشكراً لثقتكم.`);
 };
 
-/* ===== 4. زر "تم الشراء" لقطع غيار الصيانة داخل التقرير ===== */
 function buyPart(id) {
   const r = rf(id);
   if (!r) return;
   commit('وصلت القطعة ✓', () => { r.part = ''; r.lb = S.me; });
 }
 
-const _rep7 = VW.rep;
+/* ===== 3. قسم التقرير اليومي المنظم والمرتب حسب الأقسام الأربعة المطلوبة ===== */
+let reportSectionFilter = 'all';
+
+function getReportData() {
+  const phonesOut = ph().filter(p => pst(p) !== 'g');
+  
+  const glassOut = [];
+  GM().forEach(g => S.tags.glass.forEach((t, idx) => {
+    const i = gitem(g.id, t);
+    if (i && gSt(i, g) !== 'g') glassOut.push({ g, t, i, idx });
+  }));
+
+  const pochettesOut = S.items.filter(i => i.sec === 'case' && csSt(i) !== 'g');
+  const accOut = S.items.filter(i => i.sec === 'acc' && acSt(i) !== 'g');
+  const repairsOut = S.rp.filter(r => r.st === 'in' && r.part);
+  const reqOut = S.req;
+
+  return { phonesOut, glassOut, pochettesOut, accOut, repairsOut, reqOut };
+}
+
+function generateReportText(mode = 'all') {
+  const d = getReportData();
+  const o = [`📋 *تقرير المحل (${new Date().toLocaleDateString('ar-MA')})*`, ''];
+
+  if (mode === 'all' || mode === 'phones') {
+    const s = stkL();
+    if (s.length && mode === 'all') {
+      o.push('*📱 الهواتف المتوفرة حالياً*');
+      s.forEach(i => o.push('• ' + stkN(i) + ' — العدد ' + i.cnt + (i.price ? ' (' + i.price + ' د)' : '')));
+      o.push('');
+    }
+    if (d.phonesOut.length || mode === 'phones') {
+      o.push('*📱 قسم الهواتف النافدة*');
+      if (d.phonesOut.length) d.phonesOut.forEach(p => o.push('🔴 ' + [p.brand, p.name, p.color, p.cap].filter(Boolean).join(' ') + ' — الكمية: ' + p.cnt));
+      else o.push('✅ لا توجد هواتف نافدة');
+      o.push('');
+    }
+  }
+
+  if (mode === 'all' || mode === 'glass') {
+    o.push('*🛡️ قسم زجاج الحماية (الأنتي كاس)*');
+    if (d.glassOut.length) d.glassOut.forEach(x => o.push((x.i.st == 'r' ? '🔴 ' : '🟡 ') + x.t + ': ' + x.g.models.join(' / ') + (x.i.note ? ' — ' + x.i.note : '')));
+    else o.push('✅ الأنتي كاس مكتمل');
+    o.push('');
+  }
+
+  if (mode === 'all' || mode === 'pochette') {
+    o.push('*📲 قسم البوشيط (Cases)*');
+    if (d.pochettesOut.length) d.pochettesOut.forEach(p => o.push((p.st == 'r' ? '🔴 ' : '🟡 ') + p.name + (p.rem ? ' — باقي: ' + p.rem : '') + (p.need ? ' — خاصنا: ' + p.need : '')));
+    else o.push('✅ البوشيط مكتمل');
+    o.push('');
+  }
+
+  if (mode === 'all' || mode === 'acc') {
+    o.push('*🔌 قسم الإكسسوارات الأخرى*');
+    if (d.accOut.length || d.repairsOut.length || (mode === 'all' && d.reqOut.length)) {
+      if (d.accOut.length) d.accOut.forEach(a => o.push((a.st == 'r' ? '🔴 ' : '🟡 ') + acName(a) + (typeof a.cnt == 'number' ? ' — العدد ' + a.cnt : '') + (a.note ? ' — ' + a.note : '')));
+      if (d.repairsOut.length) d.repairsOut.forEach(r => o.push('🔧 قطعة صيانة: ' + r.part + ' (' + r.dev + ')'));
+      if (mode === 'all' && d.reqOut.length) d.reqOut.forEach(q => o.push('🗣️ طلب زبون: ' + q.t));
+    } else {
+      o.push('✅ الإكسسوارات مكتملة');
+    }
+    o.push('');
+  }
+
+  return o.join('\n').trim();
+}
+
 VW.rep = function() {
-  const o = _rep7();
-  S.rp.filter(r => r.st == 'in' && r.part).forEach(r => {
-    const oldHtml = `<div class="card">قطعة: ${esc(r.part)} <span class="m">(${esc(r.dev)} — ${esc(r.name)})</span></div>`;
-    const newHtml = `<div class="card row2"><span style="flex:1">🔧 قطعة: <b>${esc(r.part)}</b> <span class="m">(${esc(r.dev)} — ${esc(r.name)})</span></span><button class="btn sm" onclick="buyPart('${r.id}')">تم الشراء</button></div>`;
-    o.h = o.h.replace(oldHtml, () => newHtml);
-  });
-  return o;
+  const d = getReportData();
+  const tabs = [
+    ['all', '📋 التقرير الشامل'],
+    ['phones', '📱 الهواتف'],
+    ['glass', '🛡️ الأنتي كاس'],
+    ['pochette', '📲 البوشيط'],
+    ['acc', '🔌 الإكسسوارات']
+  ];
+
+  let contentHtml = '';
+
+  // فلتر الأقسام العلوي داخل التقرير
+  const filterBar = `<div style="margin-bottom:12px; display:flex; gap:6px; overflow-x:auto">${tabs.map(([k, l]) => `<button class="tag ${reportSectionFilter === k ? 'on' : ''}" onclick="reportSectionFilter='${k}';render()">${l}</button>`).join('')}</div>`;
+
+  if (reportSectionFilter === 'all' || reportSectionFilter === 'phones') {
+    const s = stkL();
+    if (s.length && reportSectionFilter === 'all') {
+      contentHtml += `<h3>📱 الهواتف المتوفرة حالياً</h3>` + s.map(i => `<div class="card row2"><span style="flex:1">${esc(stkN(i))}</span><span class="m">${i.cnt}${i.price ? ' · ' + esc(i.price) : ''}</span></div>`).join('');
+    }
+    contentHtml += `<h3>📱 قسم الهواتف النافدة</h3>` + (d.phonesOut.map(p => `
+      <div class="card row2">
+        <span class="dotl" style="background:${DT[pst(p)]}"></span>
+        <span style="flex:1"><b>${esc([p.brand, p.name, p.color, p.cap].filter(Boolean).join(' '))}</b> — العدد: ${p.cnt}</span>
+        <button class="btn sm" onclick="buyP('${p.id}')">تم الشراء</button>
+      </div>
+    `).join('') || '<p class="m">لا هواتف نافدة.</p>');
+  }
+
+  if (reportSectionFilter === 'all' || reportSectionFilter === 'glass') {
+    contentHtml += `<h3>🛡️ قسم زجاج الحماية (الأنتي كاس)</h3>` + (d.glassOut.map(x => `
+      <div class="card row2">
+        <span class="dotl" style="background:${DT[x.i.st]}"></span>
+        <span style="flex:1"><b>${esc(x.t)}</b>: ${esc(x.g.models.join(' / '))} ${x.i.note ? '— ' + esc(x.i.note) : ''}</span>
+        <button class="btn sm" onclick="buyG('${x.i.id}')">تم الشراء</button>
+      </div>
+    `).join('') || '<p class="m">الأنتي كاس مكتمل.</p>');
+  }
+
+  if (reportSectionFilter === 'all' || reportSectionFilter === 'pochette') {
+    contentHtml += `<h3>📲 قسم البوشيط</h3>` + (d.pochettesOut.map(p => `
+      <div class="card row2">
+        <span class="dotl" style="background:${DT[p.st]}"></span>
+        <span style="flex:1"><b>بوشيط ${esc(p.name)}</b> ${p.rem ? '— باقي: ' + esc(p.rem) : ''} ${p.need ? '<br><span class="rs">خاصنا: ' + esc(p.need) + '</span>' : ''}</span>
+        <button class="btn sm" onclick="buyC('${p.id}')">تم الشراء</button>
+      </div>
+    `).join('') || '<p class="m">البوشيط مكتمل.</p>');
+  }
+
+  if (reportSectionFilter === 'all' || reportSectionFilter === 'acc') {
+    contentHtml += `<h3>🔌 قسم الإكسسوارات وقطع الصيانة</h3>` + (
+      d.accOut.map(a => `
+        <div class="card row2">
+          <span class="dotl" style="background:${DT[a.st]}"></span>
+          <span style="flex:1"><b>${esc(acName(a))}</b> ${a.note ? '— ' + esc(a.note) : ''}</span>
+          <button class="btn sm" onclick="buyA('${a.id}')">تم الشراء</button>
+        </div>
+      `).join('') +
+      d.repairsOut.map(r => `
+        <div class="card row2">
+          <span class="dotl" style="background:#f59e0b"></span>
+          <span style="flex:1">🔧 قطعة صيانة: <b>${esc(r.part)}</b> <span class="m">(${esc(r.dev)})</span></span>
+          <button class="btn sm" onclick="buyPart('${r.id}')">تم الشراء</button>
+        </div>
+      `).join('') +
+      (reportSectionFilter === 'all' ? d.reqOut.map((req, idx) => `
+        <div class="card row2">
+          <span style="flex:1">🗣️ طلب زبون: <b>${esc(req.t)}</b></span>
+          <button class="btn s sm" onclick="db.requests.splice(${idx},1);save();render()">مسح</button>
+        </div>
+      `).join('') : '') || '<p class="m">الإكسسوارات والصيانة مكتملة.</p>'
+    );
+  }
+
+  return {
+    t: 'التقرير اليومي',
+    h: filterBar + contentHtml + `
+      <div style="margin-top:20px; display:flex; gap:10px;">
+        <button class="btn" style="flex:1" onclick="location.href='https://wa.me/?text='+encodeURIComponent(generateReportText(reportSectionFilter))">📲 إرسال القسم بالواتساب</button>
+        <button class="btn s" onclick="navigator.clipboard.writeText(generateReportText(reportSectionFilter)).then(()=>toast('تم النسخ'))">نسخ النص</button>
+      </div>
+    `
+  };
 };
 
-/* ===== 5. ملاحظة سريعة للبوشيط (شنو باقي / شنو خاصنا) ===== */
+/* ===== 4. ملاحظة سريعة للبوشيط (شنو باقي / شنو خاصنا) ===== */
 const _csCard7 = csCard;
 csCard = function(i) {
   let h = _csCard7(i);
