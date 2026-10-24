@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>نبض المحل</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- الهيدر الهادئ -->
+  <header class="app-bar">
+    <div class="brand-area">
+      <span class="status-dot-live"></span>
+      <h1 id="ui-shop-name">نبض المحل</h1>
+    </div>
+    <div class="bar-actions">
+      <button class="chip-staff" onclick="cycleStaff()">
+        <span id="ui-staff-name">المعلم</span>
+      </button>
+      <button class="icon-circle" onclick="openSettingsSheet()" title="الإعدادات">⚙️</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+
+    <!-- شريط البحث الذكي المدمج -->
+    <div class="search-bar">
+      <span class="search-ico">🔍</span>
+      <input type="text" id="global-search" placeholder="ابحث عن هاتف، زجاج، بوشيط، أو زبون..." oninput="onSearchInput(this.value)">
+      <button id="clear-search" class="clear-btn hidden" onclick="clearSearch()">✕</button>
+    </div>
+
+    <!-- شريط تنبيه البدائل الفوري (يظهر فقط عند البحث عن زجاج) -->
+    <div id="compat-toast" class="compat-toast hidden"></div>
+
+    <!-- بطاقة النبض السريع (تختصر حالة المحل وتفتح التقرير أو طلبات الزبائن) -->
+    <div class="pulse-banner">
+      <div class="pulse-main" onclick="switchSection('report')">
+        <div class="pulse-label">قائمة المعلم (النواقص)</div>
+        <div class="pulse-value"><span id="stat-shortages">0</span> نواقص مسجلة ←</div>
+      </div>
+      <div class="pulse-divider"></div>
+      <button class="pulse-quick-btn" onclick="openCustomerReqSheet()">
+        <span>🗣️ زبون سأل</span>
+      </button>
+    </div>
+
+    <!-- شريط الأقسام الكبسولي (Segmented Control) -->
+    <nav class="seg-nav">
+      <button class="seg-btn active" id="seg-repairs" onclick="switchSection('repairs')">
+        الصيانة <span class="mini-badge" id="badge-repairs">0</span>
+      </button>
+      <button class="seg-btn" id="seg-phones" onclick="switchSection('phones')">الهواتف</button>
+      <button class="seg-btn" id="seg-glass" onclick="switchSection('glass')">الزجاج</button>
+      <button class="seg-btn" id="seg-pochette" onclick="switchSection('pochette')">البوشيط</button>
+      <button class="seg-btn" id="seg-acc" onclick="switchSection('acc')">إكسسوار</button>
+      <button class="seg-btn" id="seg-report" onclick="switchSection('report')">التقرير</button>
+    </nav>
+
+    <!-- شريط الفلاتر الفرعية (يتغير حسب القسم) -->
+    <div id="sub-filters" class="sub-filters"></div>
+
+    <!-- قائمة العناصر النظيفة (Zero-Clutter List) -->
+    <div id="list-container" class="list-container"></div>
+
+  </main>
+
+  <!-- الزر العائم الذكي للإضافة السريعة بيد واحدة (FAB) -->
+  <button class="fab-btn" id="fab-main" onclick="handleFabClick()">
+    <span class="fab-plus">＋</span>
+    <span id="fab-label">استلام جهاز</span>
+  </button>
+
+  <!-- النافذة السفلية المنزلقة (Bottom Sheet) -->
+  <div id="sheet-overlay" class="sheet-overlay hidden" onclick="if(event.target===this) closeSheet()">
+    <div class="sheet-panel">
+      <div class="sheet-pill"></div>
+      <div id="sheet-content"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
