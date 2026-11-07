@@ -27,7 +27,7 @@ button,input,select,textarea{touch-action:manipulation}
 .btn.s{background:var(--c);color:var(--t);border:1px solid var(--b)}
 .btn.d{background:#dc2626;color:#fff}
 .btn.sm{width:auto;min-height:40px;margin:0;padding:0 14px;border-radius:12px}
-.btn.del{flex:0 0 auto!important;padding:0 12px;color:#dc2626}
+.btn.del{flex:0 0 auto!important;padding:0 10px!important;color:#dc2626}
 .card{display:block;width:100%;background:var(--c);color:var(--t);border:1px solid var(--b);border-radius:var(--r);padding:14px;margin:10px 0;font:inherit;text-align:start;box-shadow:0 1px 2px rgba(15,23,42,.04);transition:transform .12s ease,border-color .15s ease}
 .card.sel{border-color:var(--p);box-shadow:0 0 0 1px var(--p)}
 .row2{display:flex;align-items:center;gap:10px}
@@ -98,8 +98,8 @@ nav button.on .ic{background:var(--ab)}
 .rtabs{margin-bottom:10px;padding-bottom:2px}
 .rtabs .tag,#sc .tag{flex:none;white-space:nowrap;margin:0;padding:6px 14px;font-size:.88rem}
 
-.card .sub{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.card .sub .btn.sm{flex:1 1 auto;min-height:38px;padding:0 8px;white-space:nowrap;font-size:.86rem}
+.card .sub{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.card .sub .btn.sm{flex:1 1 auto;min-height:38px;padding:0 6px;white-space:nowrap;font-size:.82rem}
 .row2 .btn.sm{min-height:36px;padding:0 10px;font-size:.85rem;white-space:nowrap}
 
 .bkb{display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:10px;border:1px solid var(--b);border-radius:12px;background:var(--c);font-size:.85rem}
@@ -140,6 +140,9 @@ main>.rtabs:first-of-type{position:sticky;top:calc(60px + env(safe-area-inset-to
 .cmp-main b{display:block;font-size:.94rem;overflow-wrap:anywhere;line-height:1.4}
 .cmp-main .m{font-size:.84rem;overflow-wrap:anywhere;line-height:1.4}
 .cmp-pr{font-weight:800;font-size:1.02rem;color:var(--p);white-space:nowrap;margin-inline:4px}
+.cs-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cs-gbd{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--b);font-size:.8rem;white-space:nowrap}
+.cs-lim{font-size:.76rem;margin-inline-start:auto;white-space:nowrap}
 .cs-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .cs-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:10px;background:var(--bg);border:1px solid var(--b);font-size:.83rem}
 .cs-chip.low{border-color:#fca5a5;background:color-mix(in srgb,#dc2626 8%,var(--bg))}
