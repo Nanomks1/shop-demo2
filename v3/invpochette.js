@@ -33,7 +33,7 @@ const csSt = i => {
   return 'g';
 };
 const csGSummaryTxt = i => csGStats(i).map(x => `${x.g} ${x.tot}`).join(' · ');
-const csGBadgesHtml = i => csGStats(i).map(x => `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--b);font-size:.8rem"><span class="dotl" style="background:${DT[x.st]};width:8px;height:8px"></span><span>${esc(x.g)}:</span><b>${x.tot}</b></span>`).join(' ');
+const csGBadgesHtml = i => csGStats(i).map(x => `<span class="cs-gbd"><span class="dotl" style="background:${DT[x.st]};width:8px;height:8px"></span><span>${esc(x.g)}:</span><b>${x.tot}</b></span>`).join('');
 const csChipCls = (i, x) => {
   const L = x.g ? csGLim(i, x.g) : csLim(i);
   return x.n <= 0 ? 'low' : (L > 0 && x.n <= L) ? 'warn' : '';
@@ -67,18 +67,18 @@ function csClrNeed(id) {
 
 function csCard(i) {
   const s = csSt(i), cmp = isCmp('case') && V.v == 'sec';
-  const prHtml = i.price ? `<span class="cmp-pr">${esc(fmtPr(i.price))}</span>` : (!cmp && can('price') ? `<button class="tag" style="margin:0;padding:2px 8px;font-size:.76rem" onclick="csLimEd('${i.id}')">+ السعر</button>` : '');
+  const prHtml = i.price ? `<span class="cmp-pr">${esc(fmtPr(i.price))}</span>` : '';
   const chips = csChipsHtml(i, cmp);
   if (cmp) {
     return cardH(`<div class="row2" style="flex-wrap:wrap;gap:6px"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="csQuickNote('${i.id}')"><b>${esc(i.name)}</b></div>${prHtml}${csGBadgesHtml(i)}<button class="btn s sm" onclick="csLimEd('${i.id}')">الحد والسعر</button><button class="btn s sm" onclick="csVar('${i.id}')">+ نوع</button></div>` + chips, colOf(i), 'cmp');
   }
   return cardH(`<div class="row2"><b>${esc(i.name)}</b>${prHtml}<span class="dotl" style="background:${DT[s]}"></span><span class="m nw">${TX[s]}</span></div>`
-    + `<div class="row2" style="flex-wrap:wrap;gap:6px;margin-top:6px">${csGBadgesHtml(i)}<span class="m" style="font-size:.78rem;margin-inline-start:auto">«قارب» عند ${csLim(i)} فأقل لكل جنس</span></div>`
+    + `<div class="cs-meta">${csGBadgesHtml(i)}<span class="m cs-lim">الحد ≤ ${csLim(i)} لكل جنس</span></div>`
     + chips
     + fxShow(i)
     + (i.rem ? `<div class="m" style="margin-top:6px"><span class="dotl" style="background:${DT.g}"></span> باقي: ${esc(i.rem)}</div>` : '')
     + (i.need ? `<div class="rs row2" style="margin-top:4px;gap:6px"><span class="dotl" style="background:${DT.r}"></span><span style="flex:1">خاصنا: ${esc(i.need)}</span><button class="tag" style="margin:0;padding:2px 8px;font-size:.76rem;color:#dc2626" onclick="csClrNeed('${i.id}')">× مسح</button></div>` : '')
-    + `<div class="sub"><button class="btn s sm" onclick="csQuickNote('${i.id}')">باقي / خاصنا</button><button class="btn s sm" onclick="csVar('${i.id}')">+ لون/نوع</button><button class="btn s sm" onclick="csLimEd('${i.id}')">الحد والسعر</button>${S.fields.some(f => f.sec == 'case') ? `<button class="btn s sm" onclick="csFx('${i.id}')">خانات</button>` : ''}<button class="btn s sm del" onclick="csDel('${i.id}')">حذف</button></div>`, colOf(i));
+    + `<div class="sub"><button class="btn s sm" onclick="csQuickNote('${i.id}')">باقي / خاصنا</button><button class="btn s sm" onclick="csVar('${i.id}')">+ لون/نوع</button><button class="btn s sm" onclick="csLimEd('${i.id}')">${i.price ? 'الحد والسعر' : '+ السعر والحد'}</button>${S.fields.some(f => f.sec == 'case') ? `<button class="btn s sm" onclick="csFx('${i.id}')">خانات</button>` : ''}<button class="btn s sm del" onclick="csDel('${i.id}')">حذف</button></div>`, colOf(i));
 }
 function csView() {
   const allCs = S.items.filter(i => i.sec == 'case'), totPcs = allCs.reduce((s, i) => s + csTot(i), 0), lowCnt = allCs.filter(i => csSt(i) != 'g').length;
