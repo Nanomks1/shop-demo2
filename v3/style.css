@@ -11,27 +11,29 @@
 [data-md=d] .btn.del{color:#f87171}
 html{font-size:var(--fs);overflow-x:hidden}
 body{margin:0;overflow-x:hidden;max-width:100%;background:var(--bg);color:var(--t);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;line-height:1.6}
-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:4px;padding:8px 8px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--c);border-bottom:1px solid var(--b)}
-h1{flex:1;min-width:0;margin:0;font-size:1rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:4px;padding:8px 6px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--c);border-bottom:1px solid var(--b)}
+h1{flex:1;min-width:0;margin:0;font-size:.98rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 h3{margin:18px 4px 8px;font-size:.95rem;font-weight:600;color:var(--m)}
 main{padding:14px 14px 115px;max-width:640px;margin:auto}
 .ic{width:1.4rem;height:1.4rem;flex:none}
 .ic.s{width:1.05em;height:1.05em;vertical-align:-.15em;margin-inline-end:.25em}
 .ib,.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--b);background:var(--c);color:var(--t);border-radius:12px;min-height:44px;padding:0 14px;font:inherit;cursor:pointer;transition:transform .12s ease,background-color .15s ease}
-.ib{min-width:40px;padding:0 6px;flex:none}
-header .ib,header .chip{min-height:42px}
-header .chip{flex:0 1 auto;min-width:0;max-width:22vw;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:42px}
+.ib{min-width:36px;padding:0 5px;flex:none}
+header .ib,header .chip{min-height:40px}
+header .chip{flex:0 1 auto;min-width:0;max-width:20vw;padding:0 8px;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:40px}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;margin:8px 0;border:0;border-radius:14px;background:var(--p);color:var(--onp);font:inherit;font-weight:600;cursor:pointer;transition:transform .12s ease,opacity .15s ease}
 .btn:active,button.card:active,.tag:active,.pkb:active,.fab-b:active,.qpill:active,.ib:active,.chip:active{transform:scale(.97)}
 button,input,select,textarea{touch-action:manipulation}
 .btn.s{background:var(--c);color:var(--t);border:1px solid var(--b)}
 .btn.d{background:#dc2626;color:#fff}
 .btn.sm{width:auto;min-height:40px;margin:0;padding:0 14px;border-radius:12px}
+.btn.del{flex:0 0 auto!important;padding:0 12px;color:#dc2626}
 .card{display:block;width:100%;background:var(--c);color:var(--t);border:1px solid var(--b);border-radius:var(--r);padding:14px;margin:10px 0;font:inherit;text-align:start;box-shadow:0 1px 2px rgba(15,23,42,.04);transition:transform .12s ease,border-color .15s ease}
 .card.sel{border-color:var(--p);box-shadow:0 0 0 1px var(--p)}
 .row2{display:flex;align-items:center;gap:10px}
 .row2 b{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
 .m{color:var(--m);font-size:.96rem}
+.nw{white-space:nowrap}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid .card{margin:0;text-align:center;padding:22px 10px;font-weight:600}
 .grid .card.sc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:14px;cursor:pointer}
@@ -42,8 +44,14 @@ button,input,select,textarea{touch-action:manipulation}
 input,select,textarea{width:100%;min-height:48px;padding:10px 12px;border:1.5px solid color-mix(in srgb,var(--t) 16%,var(--b));border-radius:12px;background:var(--c);color:var(--t);font:inherit;transition:outline-color .15s ease,border-color .15s ease}
 #sh input,#sh select,#sh textarea,.card input,.card select,.card textarea{background:var(--bg);border-color:color-mix(in srgb,var(--t) 22%,var(--b))}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--p);outline-offset:-1px;border-color:transparent!important}
-::placeholder{color:var(--m);opacity:.8}
+::placeholder{color:var(--m);opacity:.8;font-size:.84rem}
 label{display:block;margin:10px 0 4px;color:var(--m);font-size:.96rem;font-weight:500}
+
+/* تنسيق موحد لعناصر details/summary (مثل معاينة النص والخيارات المتقدمة) */
+details summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;user-select:none}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"▾";color:var(--m);font-size:1rem;transition:transform .15s ease}
+details[open] summary::after{transform:rotate(180deg)}
 
 nav{position:fixed;bottom:0;inset-inline:0;z-index:10;display:flex;background:var(--c);border-top:1px solid var(--b);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
 nav button{flex:1;border:0;background:none;color:var(--m);padding:4px 0;font:inherit;font-size:.84rem;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
@@ -65,10 +73,14 @@ nav button.on .ic{background:var(--ab)}
 
 .toast{position:fixed;bottom:84px;inset-inline:14px;max-width:612px;margin:auto;background:#1e293b;color:#fff;padding:12px 16px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:toastIn .2s cubic-bezier(.2,.8,.2,1)}
 .toast button{background:none;border:0;color:#93c5fd;font:inherit;font-weight:600;cursor:pointer}
-.tag{display:inline-flex;gap:8px;align-items:center;margin:3px;padding:7px 13px;border-radius:999px;background:var(--c);border:1px solid var(--b);color:var(--t);font:inherit;font-size:.96rem;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease,transform .1s ease}
+.tag{display:inline-flex;gap:8px;align-items:center;justify-content:center;margin:3px;padding:7px 13px;border-radius:999px;background:var(--c);border:1px solid var(--b);color:var(--t);font:inherit;font-size:.92rem;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease,transform .1s ease}
 #sh .tag{background:var(--bg)}
 .tag b{color:#dc2626}
 .tag.on,#sh .tag.on{background:var(--p);color:var(--onp);border-color:var(--p);font-weight:600}
+
+/* شبكات الوسوم داخل النوافذ السفلية لتوزيع متناسق بدون فراغات عشوائية */
+#cc>div,#cc2>div,#fx>div,#rk,#rp_br_tags,#rp_fl_tags{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+#cc .tag,#cc2 .tag,#fx .tag,#rk .tag,#rp_br_tags .tag,#rp_fl_tags .tag{margin:0}
 
 /* لوحة الأرقام التفاعلية مع دعم التبديل للحروف */
 .pin-wrap{margin:10px 0 4px;user-select:none}
@@ -120,7 +132,7 @@ nav button.on .ic{background:var(--ab)}
 .st-arr{color:var(--m);opacity:.6;transform:scaleX(-1);flex:none}
 
 /* ---- تثبيت شريط الفلاتر والترتيب أثناء التمرير (Sticky Sub-header) ---- */
-main>.rtabs:first-of-type{position:sticky;top:calc(59px + env(safe-area-inset-top));z-index:4;background:var(--bg);padding:6px 0;margin-inline:-2px}
+main>.rtabs:first-of-type{position:sticky;top:calc(60px + env(safe-area-inset-top));z-index:4;background:var(--bg);padding:6px 0;margin-inline:-2px}
 
 /* ---- العرض المضغوط وكبسولات البوشيط ---- */
 .card.cmp{padding:10px 12px;margin:6px 0;border-radius:13px}
@@ -234,7 +246,7 @@ nav button.on .ic.ci{opacity:1;transform:scale(1.12)}
 .tpd small{display:block;font-size:.74rem;font-weight:600;opacity:.85}
 .tps{flex:1;min-height:46px;border-radius:10px;border:1px solid var(--b);background:var(--bg);color:var(--t);font:inherit;font-size:.92rem;font-weight:600;padding:0 4px;cursor:pointer}
 .tps.g.on{background:#16a34a;color:#fff;border-color:#16a34a}.tps.y.on{background:#d97706;color:#fff;border-color:#d97706}.tps.r.on{background:#dc2626;color:#fff;border-color:#dc2626}
-.tpi{width:80px;min-height:46px;padding:4px 6px;text-align:center;font-weight:700;border-radius:10px}.tpu{font-size:.86rem}
+.tpi{width:80px;min-height:46px;padding:4px 6px;text-align:center;font-weight:700;border-radius:10px;direction:ltr}.tpu{font-size:.86rem}
 .sch{color:var(--sc)!important;display:flex;align-items:center;gap:4px}.rlist.sx{border-inline-start:5px solid var(--sc)}
 /* home */
 .qbar.cmp{gap:6px;margin:8px 0}.qbar.cmp .qic{display:none}.qbar.cmp .qpill{padding:7px 4px;gap:1px}.qbar.cmp .qn{font-size:1.4rem}
@@ -250,6 +262,6 @@ nav button.on .ic.ci{opacity:1;transform:scale(1.12)}
 #sc .tag{margin:0!important;flex:0 0 auto;padding:5px 11px;font-size:.82rem;border-radius:9px}
 
 /* شريط «تحديث جاهز» */
-.upd{position:fixed;top:calc(58px + env(safe-area-inset-top));inset-inline:12px;max-width:616px;margin:auto;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:14px;background:var(--p);color:#fff;font-size:.9rem;box-shadow:0 6px 20px rgba(0,0,0,.25);animation:toastIn .2s ease}
+.upd{position:fixed;top:calc(60px + env(safe-area-inset-top));inset-inline:12px;max-width:616px;margin:auto;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:14px;background:var(--p);color:#fff;font-size:.9rem;box-shadow:0 6px 20px rgba(0,0,0,.25);animation:toastIn .2s ease}
 .upd button{flex:none;border:0;border-radius:10px;padding:8px 14px;background:#fff;color:var(--p);font:inherit;font-weight:700;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
