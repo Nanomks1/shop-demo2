@@ -36,7 +36,7 @@ let SC = '', SQ_T = 0;   // نطاق البحث الحالي + مؤقت تهدئ
 const scopeChips = () => [['', 'الكل'], ...SRCH.map(p => [p.k, p.l])].map(([k, l]) => `<button class="tag ${SC == k ? 'on' : ''}" onclick="scSet('${k}')">${l}</button>`).join('');
 /* مصادر بحث إضافية: الصيانة، طلبات الزبائن، دليل أسعار الإصلاح */
 SRCH.push(
-  { k: 'rp', l: 'صيانة', run: n => S.rp.filter(r => nzOf(r, rpText).includes(n)).sort((x, y) => (y.t0 || 0) - (x.t0 || 0)).slice(0, 20).map(rc) },
+  { k: 'rp', l: 'صيانة', run: n => S.rp.filter(r => nzOf(r, rpText).includes(n)).sort((x, y) => (y.t0 || 0) - (b = y.t0 || 0, x.t0 || 0)).slice(0, 20).map(rc) },
   { k: 'req', l: 'طلبات الزبائن', run: n => S.req.filter(q => nz(q.t).includes(n)).slice(0, 20).map(q => typeof rqCard == 'function' ? rqCard(q) : `<div class="card"><div class="m">${fd(q.at)} · ${esc(q.by || '')}</div><div>${esc(q.t)}</div><div class="sub">${rqTel(q.t) ? `<button class="btn s sm" onclick="rqWA('${q.id}')">واتساب</button>` : ''}<button class="btn s sm" onclick="rqD('${q.id}')">مسح</button></div></div>`) },
   { k: 'gd', l: 'أسعار الإصلاح', run: n => S.guide.filter(g => nz(g.m + ' ' + g.f + ' ' + (g.n || '')).includes(n)).slice(0, 20).map(gdCard) }
 );
@@ -293,7 +293,7 @@ addEventListener('resize', fabPlace);
 HK.render.push(fabUpd);
 
 HK.render.push(() => {
-  document.querySelectorAll('.rtabs, #sc').forEach(c => {
+  document.querySelectorAll('.rtabs, .sec-tags.nowrap, #sc').forEach(c => {
     const t = c.querySelector('.tag.on'); if (!t || c.scrollWidth <= c.clientWidth + 2) return;
     const x = c.getBoundingClientRect(), y = t.getBoundingClientRect();
     c.scrollBy({ left: (y.left + y.width / 2) - (x.left + x.width / 2), top: 0 });
