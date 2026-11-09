@@ -21,4 +21,3 @@ jobs:
           V_SW=$(grep -o "aziz-shop-v3-[0-9]*" v3/sw.js | cut -d- -f4)
           test "$V_HTML" = "$V_SW" || { echo "VERSION MISMATCH: index.html($V_HTML) != sw.js($V_SW)"; exit 1; }
           echo "all good (v=$V_HTML)"
-          
