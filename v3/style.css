@@ -463,10 +463,13 @@ html[data-ics=line] .ci .iD{stroke:var(--f)}
 .cc-acts .btn{flex:1}
 
 /* بطاقة الهاتف: السعة والرام وعدد الهواتف بارزة، وزر «بيع» بلون خفيف من الثيم */
-.phkr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px}
-.phk{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:var(--rt);border:1.5px solid var(--b);background:var(--inp);color:var(--t);font-size:.95rem;font-weight:800;line-height:1.5;direction:ltr;unicode-bidi:isolate}
-.phk.c{direction:rtl;font-size:.85rem;font-weight:700;color:var(--m)}
-.phk.n{direction:rtl;background:var(--ab);border-color:var(--p)}
-.phk.n small{font-size:.76rem;font-weight:600;color:var(--m)}
-.phk.n b{display:inline;font-size:1.05rem;font-weight:800;color:var(--t)}
+.ph-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.ph-top b{flex:0 1 auto;display:inline;font-size:.96rem}
+.phkr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
+.phkr .cmp-pr{margin-inline:0}
+.phk{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:var(--rt);border:1.5px solid var(--b);background:var(--inp);color:var(--t);font-size:.84rem;font-weight:800;line-height:1.4;direction:ltr;unicode-bidi:isolate}
+.phk.c{direction:rtl;font-size:.8rem;font-weight:700;color:var(--m)}
+.phk.n{direction:rtl;background:var(--ab);border-color:var(--p);padding:1px 8px}
+.phk.n small{font-size:.74rem;font-weight:600;color:var(--m)}
+.phk.n b{flex:none;display:inline;font-size:.92rem;font-weight:800;color:var(--t)}
 .phsel .btn.s.sell{background:var(--ab);border-color:var(--p);color:var(--t)}
