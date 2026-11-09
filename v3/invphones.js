@@ -67,10 +67,12 @@ function phDots(g, cmp) {
 }
 function phGCard(g) {
   const s = phGSt(g), cmp = isCmp('phones') && V.v == 'sec', f0 = g.items[0], sel = g.items.find(x => x.id == PHS);
-  const t = [g.ram, g.cap, g.cond != 'جديد' && g.cond, g.items.length > 1 && g.cnt + ' قطعة'].filter(Boolean).map(esc).join(' · ');
+  const t = [g.ram, g.cap].filter(Boolean).map(x => `<span class="phk">${esc(x)}</span>`).join('')
+    + (g.cond != 'جديد' ? `<span class="phk c">${esc(g.cond)}</span>` : '')
+    + (g.items.length > 1 ? `<span class="phk n"><small>عدد الهواتف</small><b>${g.cnt}</b></span>` : '');
   const rsB = g.rs ? `<span class="rs"> · محجوز ${g.rs}</span>` : '';
-  const bar = sel ? `<div class="phsel"><span class="csd" style="background:${csBg(sel.color)};color:${csInk(sel.color)}"></span><b style="flex:1;min-width:0">${esc(sel.color || 'عام')}</b><button class="btn s sm" onclick="phC('${sel.id}',-1)">− بيع</button><span class="cn">${sel.cnt}</span><button class="btn sm" onclick="phC('${sel.id}',1)">+ إضافة</button><button class="tag" style="margin:0" onclick="phOpen('${sel.id}')">⋯</button></div>` : '';
-  return cardH(`<div class="row2" style="gap:8px;flex-wrap:wrap"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="phGO('${f0.id}')"><b>${esc(g.brand + ' ' + g.name)}</b>${t || rsB ? `<div class="m">${t}${rsB}</div>` : ''}</div>${g.price ? `<span class="cmp-pr">${esc(fmtPr(g.price))}</span>` : ''}<div class="cs-sws">${phDots(g, cmp)}</div></div>${bar}`, colOf(f0), 'cmp');
+  const bar = sel ? `<div class="phsel"><span class="csd" style="background:${csBg(sel.color)};color:${csInk(sel.color)}"></span><b style="flex:1;min-width:0">${esc(sel.color || 'عام')}</b><button class="btn s sm sell" onclick="phC('${sel.id}',-1)">− بيع</button><span class="cn">${sel.cnt}</span><button class="btn sm" onclick="phC('${sel.id}',1)">+ إضافة</button><button class="tag" style="margin:0" onclick="phOpen('${sel.id}')">⋯</button></div>` : '';
+  return cardH(`<div class="row2" style="gap:8px;flex-wrap:wrap"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="phGO('${f0.id}')"><b>${esc(g.brand + ' ' + g.name)}</b>${t || rsB ? `<div class="phkr">${t}${rsB}</div>` : ''}</div>${g.price ? `<span class="cmp-pr">${esc(fmtPr(g.price))}</span>` : ''}<div class="cs-sws">${phDots(g, cmp)}</div></div>${bar}`, colOf(f0), 'cmp');
 }
 /* نافذة الموديل: كل الألوان − / + ثم الحد والإضافة */
 function phGO(id) { if (!find(id)) return; phGR(id); sheetOpen(() => { }); }
@@ -208,6 +210,7 @@ function phUpR(id) {
     const mk = Math.max(0, g.models.indexOf(mName));
     h += `<div class="card"><b>${I('shield')} أنتي كاس مطابق: ${esc(g.models.join(' / '))}</b>`
       + S.tags.glass.map((ty, j) => {
+        if (!gHas(g, mName, ty)) return '';
         const it = gitem(g.id, ty) || { stock: {} }, lv = (it.lv || {})[mName], ex = lv === undefined && (it.stock || {})[mName] !== undefined;
         return `<div class="gm"><div class="row2"><b style="flex:1">${esc(ty)}${it.price ? ` <span class="cmp-pr">(${esc(fmtPr(it.price))})</span>` : ''}</b>`
           + (ex ? `<button class="btn s sm" onclick="glC('${g.id}',${j},${mk},-1);phUpR('${id}')">−1</button><span class="cn">${it.stock[mName]}</span>`
@@ -253,10 +256,11 @@ function phForm(rec) {
   PR = rec; const ed = !!rec.id;
   fsInit([['brand', 'الماركة'], ['color', 'اللون', () => shown('phones', 'color')], ['ram', 'RAM', () => shown('phones', 'ram')], ['cap', 'السعة', () => shown('phones', 'cap')]],
     { brand: rec.brand || '', color: rec.color || '', ram: rec.ram || '', cap: rec.cap || '', cond: rec.cond || 'جديد' }, 'phones', rec, shown('phones', 'cond'));
+  FS.sugC = colSugPh;
   $('sh').innerHTML = `<div class="bar"></div><h3>${ed ? 'تعديل هاتف' : 'هاتف جديد'}</h3>`
     + invModelDatalist()
     + `<div id="cc"></div>`
-    + `<label style="margin-top:8px">الموديل<input id="pm" data-sug="mn" value="${esc(rec.name || '')}" placeholder="مثال: A07"></label>`
+    + `<label style="margin-top:8px">الموديل<input id="pm" data-sug="mn" oninput="colRef()" onchange="colRef()" value="${esc(rec.name || '')}" placeholder="مثال: A07"></label>`
     + `<div class="pcrow"><label class="pcp"${hh('phones', 'price')}>سعر البيع (درهم)<input id="pp" type="tel" value="${esc(rec.price || '')}" placeholder="${esc(rec._costPh || 'مثال: 1350')}" ${ed && !can('price') ? 'disabled' : ''}></label><label class="pcn">العدد<input id="pcnt" type="number" value="${rec.cnt ?? 1}"></label></div>`
     + `<div id="cc2"></div>`
     + `<label${hh('phones', 'imei')}>IMEI / الرقم التسلسلي (اختياري)<div class="row2" style="margin-top:4px"><input id="pimei" value="${esc(rec.imei || '')}" placeholder="امسح الباركود أو اكتب الرقم" style="flex:1"><button type="button" class="btn s sm" onclick="scanIntoInput('pimei')">${I('scan')} مسح</button></div></label>`
@@ -342,7 +346,7 @@ function tagFix() {
     if (out.length === a.length) return;
     S.tags[g] = out; ch = 1;
     S.items.forEach(i => { if (map[i[g]] !== undefined) i[g] = map[i[g]]; if (g == 'color' && Array.isArray(i.v)) i.v.forEach(x => { if (map[x.c] !== undefined) x.c = map[x.c]; }); });
-    if (g == 'brand') ['bcol', 'bl'].forEach(c => { const o = S.cfg && S.cfg[c]; if (!o) return; Object.keys(map).forEach(x => { if (o[x] !== undefined) { if (o[map[x]] === undefined) o[map[x]] = o[x]; delete o[x]; } }); });
+    if (g == 'brand') ['bcol', 'bl', 'nsb'].forEach(c => { const o = S.cfg && S.cfg[c]; if (!o) return; Object.keys(map).forEach(x => { if (o[x] !== undefined) { if (o[map[x]] === undefined) o[map[x]] = o[x]; delete o[x]; } }); });
   });
   return ch;
 }

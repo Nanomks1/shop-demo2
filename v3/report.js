@@ -23,11 +23,11 @@
     if (fnName == 'buyG') {
       const i0 = find(arg), g = i0 ? S.gg.find(x => x.id == i0.gid) : S.gg.find(x => x.id == arg);
       if (!g) return;
-      const ty = i0 ? i0.ty : ((S.tags.glass && S.tags.glass[0]) || 'عادي');
+      const ty = i0 ? i0.ty : (gFirstTy(g) || 'عادي');
       ask('شراء أنتي كاس ' + ty + ' — ' + g.models.join(' / '), [{ k: 'n', l: 'الكمية الإجمالية التي وصلت للمجموعة', t: 'tel', v: String(gLim(i0 || gitem(g.id, ty), ty)) }], 'تم الشراء').then(v => {
         const n = v && ci(v.n); if (!n) return;
         commit('تم شراء أنتي كاس (+' + n + ')', () => {
-          const i = i0 || glGet(g.id, ty), m0 = g.models[0];
+          const i = i0 || glGet(g.id, ty), m0 = gMods(g, ty)[0] || g.models[0];
           i.stock = i.stock || {};
           g.models.forEach(m => { if (i.lv) delete i.lv[m]; });
           i.stock[m0] = (i.stock[m0] || 0) + n;

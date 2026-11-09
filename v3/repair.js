@@ -200,6 +200,7 @@ function rpAddonOpts(dev) {
     S.gg.filter(g => g.models.some(m => { const nm = nz(m); return nm && (nd.includes(nm) || nm.includes(nd)); })).forEach(g => {
       const mName = g.models.find(m => { const nm = nz(m); return nm && (nd.includes(nm) || nm.includes(nd)); }) || g.models[0];
       S.tags.glass.forEach((ty, j) => {
+        if (!gHas(g, mName, ty)) return;
         const it = gitem(g.id, ty), tot = it ? gTot(it, g) : 0;
         if (tot > 0) out.push({ k: `gl:${g.id}:${j}:${mName}`, l: `أنتي كاس ${ty} (${mName})${it && it.price ? ' — ' + dh(it.price) : ''}` });
       });

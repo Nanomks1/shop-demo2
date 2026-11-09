@@ -159,7 +159,12 @@ const fxShow = i => { const p = S.fields.map(f => fxVal(i, f).length ? f.name + 
 let FS = { v: {}, add: '', defs: [], fx: {}, fxA: '', fxSec: '', cond: 0 }, PR = null;
 function fsInit(defs, v, sec, rec, cond) { FS = { v: { ...v }, add: '', defs, fx: { ...((rec && rec.x) || {}) }, fxA: '', fxSec: sec || '', cond: cond ? 1 : 0 }; }
 function chipGroupHtml([g, l], canTg) {
-  return `<label>${l}</label><div>${S.tags[g].map((t, j) => `<button type="button" class="tag ${FS.v[g] == t ? 'on' : ''}" onclick="chPick('${g}',${j})">${esc(t)}</button>`).join('')}${!canTg ? '' : FS.add == g ? `<span class="row2"><input id="chn" placeholder="الاسم الجديد"><button type="button" class="btn sm" onclick="chOk('${g}')">إضافة</button></span>` : `<button type="button" class="tag" onclick="FS.add='${g}';chipsR()">+ جديد</button>`}</div>`;
+  const hid = FS.hid && FS.hid[g], sg = g == 'color' && FS.sugC ? FS.sugC() : null, sa = sg && sg.a ? sg.a.filter(n => S.tags[g].includes(n)) : [];
+  let lst = S.tags[g].map((t, j) => [t, j]);
+  if (hid) lst = lst.filter(([t]) => !hid(t) || FS.v[g] == t);   // إخفاء وسوم غير مناسبة لهذا النموذج
+  if (sa.length) lst = [...sa.map(n => lst.find(x => x[0] == n)).filter(Boolean), ...lst.filter(x => !sa.includes(x[0]))];   // المقترح أولاً
+  const cam = g == 'color' && typeof colCam == 'function' ? `<button type="button" class="tag" onclick="colCam()">${I('scan')} من الصورة</button>` : '';
+  return `<label>${l}${sa.length ? ` <small class="m">★ ${esc(sg.t)}</small>` : ''}</label><div>${lst.map(([t, j]) => `<button type="button" class="tag ${FS.v[g] == t ? 'on' : ''}" onclick="chPick('${g}',${j})">${sa.includes(t) ? '★ ' : ''}${esc(t)}</button>`).join('')}${cam}${!canTg ? '' : FS.add == g ? `<span class="row2"><input id="chn" placeholder="الاسم الجديد"><button type="button" class="btn sm" onclick="chOk('${g}')">إضافة</button></span>` : `<button type="button" class="tag" onclick="FS.add='${g}';chipsR()">+ جديد</button>`}</div>`;
 }
 function chipsR() {
   const b = $('cc'), b2 = $('cc2'); if (!b) return;

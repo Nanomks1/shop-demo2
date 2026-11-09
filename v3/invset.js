@@ -13,7 +13,7 @@ VW.st_fld = () => ({
 const tg = (l, g) => [l, "go('st_tg',{g:'" + g + "'})", () => S.tags[g].length];
 const CATS = {   // ملف الصيانة يضيف CATS.rp
   ph: ['الهواتف', [tg('الماركات', 'brand'), tg('الألوان', 'color'), tg('السعات', 'cap'), tg('RAM', 'ram'), ['حدود الهواتف حسب فئة السعر (أزرار / اقتصادية / متوسطة / عالية)', "go('st_pt')", () => ptCfg().map(x => x[2]).join(' / ')], ['الحد العام (عند عدم وجود سعر): «قارب النفاد» عند عدد', "limEd('low')", () => lim('low') + ' فأقل'], ['ألوان الماركات وحدودها', "go('st_br')"]], 'phones'],
-  gl: ['الأنتي كاس', [tg('أنواع الزجاج', 'glass'), ['حد «قارب النفاد» لكل نوع زجاج', "go('st_gl')", () => (lim('gmin') - 1) + ' فأقل'], ['كم تُحسب المستويات (غامق / أخضر / فاتح / قليل)', "go('st_gl2')"]], null],
+  gl: ['الأنتي كاس', [tg('أنواع الزجاج', 'glass'), ['حد «قارب النفاد» لكل نوع زجاج', "go('st_gl')", () => (lim('gmin') - 1) + ' فأقل'], ['كم تُحسب المستويات (غامق / أخضر / فاتح / قليل)', "go('st_gl2')"], ['ماركات قائمة الأنتي كاس (إخفاء الهواتف الصغيرة)', "go('st_glb')", () => S.tags.brand.filter(b => !glBrHid(b)).length + ' / ' + S.tags.brand.length]], null],
   cs: ['البوشيط', [tg('الألوان', 'color'), ['الحد العام لكل لون: «قارب النفاد» عند', "limEd('cl')", () => lim('cl') + ' فأقل']], 'case'],
   ac: ['الإكسسوارات', [tg('الأنواع', 'kind'), tg('الموصلات', 'conn'), tg('الفئات السعرية', 'tier'), tg('القدرات (واط)', 'pw'), ['الحد العام للقطع بعدد: «قليل» عند', "limEd('acl')", () => lim('acl') + ' فأقل'], ['الحد العام للمجموعات (كابل/شاحن) عند', "limEd('agl')", () => lim('agl') + ' فأقل'], ['إعداد كل نوع (الخاصيات، العرض، الحد)', "go('st_ak')"]], 'acc']
 };
@@ -36,6 +36,11 @@ function glTyEd(j) {
 VW.st_gl = () => ({ t: 'حدود الأنتي كاس', h: '<p class="m">يُحكم على كل مجموعة موديلات بمجموعها: «قارب النفاد» عند العدد المحدد فأقل. الترتيب: حد المجموعة الخاص (زر «الحد والسعر» داخل بطاقتها) ثم حد نوع الزجاج ثم الحد العام.</p>'
   + row('الحد العام لكل الأنواع', "limEd('gmin')", (lim('gmin') - 1) + ' فأقل') + '<h3>حد خاص بنوع زجاج</h3>'
   + S.tags.glass.map((t, j) => { const c = (S.cfg.gtl || {})[t]; return row(t, 'glTyEd(' + j + ')', c != null ? (c - 1) + ' فأقل' : 'العام'); }).join('') });
+VW.st_glb = () => ({ t: 'ماركات الأنتي كاس', h: '<p class="m">الأزرق = تظهر في قائمة الماركات عند إضافة موديل أنتي كاس. اضغط لإخفاء ماركة لا تحتاج زجاجاً (مثل هواتف الأزرار).</p><div>' + S.tags.brand.map((b, j) => `<button class="tag ${glBrHid(b) ? '' : 'on'}" onclick="glbTog(${j})">${esc(b)}</button>`).join('') + '</div>' });
+function glbTog(j) {
+  if (!can('tags')) return toast('للمدير فقط');
+  const b = S.tags.brand[j]; upd(() => { S.cfg.nsb = S.cfg.nsb || {}; if (S.cfg.nsb[b]) delete S.cfg.nsb[b]; else S.cfg.nsb[b] = 1; });
+}
 VW.st_gl2 = () => ({ t: 'مستويات الأنتي كاس', h: '<p class="m">عندما تختار مستوى تقريبياً (غامق / أخضر / فاتح / قليل) بدل عدد دقيق، يحسب التطبيق كل مستوى كعدد القطع الظاهر هنا ليحكم على مجموع المجموعة. غيّرها فقط إن اختلفت تقديراتك.</p>'
   + ['gA', 'gB', 'gC', 'gY'].map(k => row((LM.find(x => x[0] == k) || [, k])[1].replace('أنتي كاس: ', ''), "limEd('" + k + "')", lim(k))).join('') });
 
@@ -155,7 +160,7 @@ function tgReplace(g, oldV, newV) {
   if (g == 'brand') {
     S.gg.forEach(x => { if (x.br) Object.keys(x.br).forEach(m => { if (x.br[m] === oldV) { if (newV) x.br[m] = newV; else delete x.br[m]; } }); });
     S.fields.forEach(f => { if (f.sec == 'phones' && Array.isArray(f.kinds)) f.kinds = [...new Set(f.kinds.map(k => k === oldV ? newV : k).filter(Boolean))]; });
-    ['bcol', 'bl'].forEach(c => { const o = S.cfg && S.cfg[c]; if (o && o[oldV] !== undefined) { if (newV && o[newV] === undefined) o[newV] = o[oldV]; delete o[oldV]; } });
+    ['bcol', 'bl', 'nsb'].forEach(c => { const o = S.cfg && S.cfg[c]; if (o && o[oldV] !== undefined) { if (newV && o[newV] === undefined) o[newV] = o[oldV]; delete o[oldV]; } });
   }
   if (g == 'kind') {
     S.fields.forEach(f => { if (f.sec == 'acc' && Array.isArray(f.kinds)) f.kinds = [...new Set(f.kinds.map(k => k === oldV ? newV : k).filter(Boolean))]; });
@@ -167,6 +172,11 @@ function tgReplace(g, oldV, newV) {
     S.ag = (S.ag || []).filter(a => { const p = seenAg[a.id]; if (!p) { seenAg[a.id] = a; return true; } if ((a.at || 0) > (p.at || 0)) Object.assign(p, a); return false; });
   }
   if (g == 'glass') {
+    (S.gg || []).forEach(x => {   // أنواع كل موديل: استبدال الاسم القديم بالجديد (أو حذفه)
+      if (!x.ty) return;
+      Object.keys(x.ty).forEach(m => { x.ty[m] = [...new Set(x.ty[m].map(t => t === oldV ? newV : t).filter(Boolean))]; if (!x.ty[m].length) delete x.ty[m]; });
+      if (!Object.keys(x.ty).length) delete x.ty;
+    });
     const o = S.cfg && S.cfg.gtl;
     if (o && o[oldV] !== undefined) { if (newV && o[newV] === undefined) o[newV] = o[oldV]; delete o[oldV]; }
     if (!newV) {

@@ -14,11 +14,11 @@ function invLines(notes = true) {
     L.push(['الهواتف الناقصة', [g.brand, g.name, g.ram, g.cap, g.cond == 'مستعمل' && 'مستعمل'].filter(Boolean).join(' ') + ' — ' + g.tot + (g.rs ? ' (محجوز ' + g.rs + ')' : '') + cl, phGSt(g), `buyP('${lo.id}')`]);
   });
   S.gg.forEach(g => {
-    const hasAny = S.tags.glass.some(t => gitem(g.id, t));
-    S.tags.glass.forEach((t, idx) => {
-      const i = gitem(g.id, t);
-      if (i && gSt(i, g, t) != 'g') L.push(['الأنتي كاس', t + ': ' + g.models.join(' / ') + ' — المجموع ' + (gEst(i, g) ? '≈' : '') + gTot(i, g), gSt(i, g, t), `buyG('${i.id}')`]);
-      else if (!i && !hasAny && idx === 0) L.push(['الأنتي كاس', t + ': ' + g.models.join(' / ') + ' — المجموع 0', 'r', `buyG('${g.id}')`]);
+    const tys = S.tags.glass.filter(t => gShow(g, t)), hasAny = tys.some(t => gitem(g.id, t));
+    tys.forEach((t, idx) => {
+      const i = gitem(g.id, t), ms = gMods(g, t).join(' / ');
+      if (i && gSt(i, g, t) != 'g') L.push(['الأنتي كاس', t + ': ' + ms + ' — المجموع ' + (gEst(i, g) ? '≈' : '') + gTot(i, g), gSt(i, g, t), `buyG('${i.id}')`]);
+      else if (!i && !hasAny && idx === 0) L.push(['الأنتي كاس', t + ': ' + ms + ' — المجموع 0', 'r', `buyG('${g.id}')`]);
     });
   });
   S.items.filter(i => i.sec == 'case' && csSt(i) != 'g').forEach(i => {

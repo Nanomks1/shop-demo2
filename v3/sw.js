@@ -1,4 +1,4 @@
-const CACHE = 'aziz-shop-v3-68';
+const CACHE = 'aziz-shop-v3-70';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
   './invreport.js',
   './invround.js',
   './barcode.js',
+  './invcolor.js',
   './invset.js',
   './repair.js',
   './report.js',

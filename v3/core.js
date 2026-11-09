@@ -314,7 +314,19 @@ document.addEventListener('focusout', e => { if (e.target.dataset && e.target.da
 
 /* ---------- لوحة المفاتيح: النافذة السفلية تتبع المنطقة المرئية فلا تغطيها اللوحة ولا يحدث وميض ---------- */
 (() => {
-  const vv = window.visualViewport, r = document.documentElement; if (!vv) return;
+  const vv = window.visualViewport, r = document.documentElement, vk = navigator.virtualKeyboard;
+  if (vk) {   // كروم/بريف على أندرويد: اللوحة تعلو الصفحة دون تغيير حجم النافذة، فلا تظهر خلفية التطبيق الأصلية (لون الوميض) وراءها
+    try { vk.overlaysContent = true; } catch (e) { }
+    const reveal = () => {   // إن غطّت اللوحة الحقل المركَّز نمرّره للأعلى
+      const a = document.activeElement, h = vk.boundingRect.height;
+      if (!h || !a || !a.matches || !a.matches('input,textarea,select')) return;
+      if (a.getBoundingClientRect().bottom > innerHeight - h - 8) a.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
+    vk.addEventListener('geometrychange', () => { r.style.setProperty('--kb', Math.round(vk.boundingRect.height) + 'px'); setTimeout(reveal, 80); });
+    document.addEventListener('focusin', () => setTimeout(reveal, 350));
+    return;
+  }
+  if (!vv) return;
   const f = () => { r.style.setProperty('--vvh', vv.height + 'px'); r.style.setProperty('--vvt', vv.offsetTop + 'px'); };
   vv.addEventListener('resize', f); vv.addEventListener('scroll', f); f();
 })();

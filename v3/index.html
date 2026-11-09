@@ -10,11 +10,11 @@
 dk=md=='d'||(md!='l'&&matchMedia('(prefers-color-scheme: dark)').matches);d.dataset.md=dk?'d':'l';d.dataset.th=dk?(p[3]||'navy'):(p[1]||'light')}catch(e){}})();
 </script>
 <meta name="color-scheme" content="only light">
-<link rel="manifest" href="manifest.json?v=68">
-<link rel="icon" href="icon-192.png?v=68">
-<link rel="apple-touch-icon" href="icon-192.png?v=68">
+<link rel="manifest" href="manifest.json?v=70">
+<link rel="icon" href="icon-192.png?v=70">
+<link rel="apple-touch-icon" href="icon-192.png?v=70">
 <title>محل عزيز</title>
-<link rel="stylesheet" href="style.css?v=68">
+<link rel="stylesheet" href="style.css?v=70">
 </head>
 <body>
 <header>
@@ -29,30 +29,31 @@ dk=md=='d'||(md!='l'&&matchMedia('(prefers-color-scheme: dark)').matches);d.data
 <nav id="nv"></nav>
 <div id="ts" class="toast" hidden></div>
 <div id="ov" hidden><div id="sh"></div></div>
-<script src="core.js?v=68"></script>
-<script src="icons.js?v=68"></script>
-<script src="topup.js?v=68"></script>
-<script src="invbase.js?v=68"></script>
-<script src="invphones.js?v=68"></script>
-<script src="invglass.js?v=68"></script>
-<script src="invpochette.js?v=68"></script>
-<script src="invacc.js?v=68"></script>
-<script src="invreport.js?v=68"></script>
-<script src="invround.js?v=68"></script>
-<script src="barcode.js?v=68"></script>
-<script src="invset.js?v=68"></script>
-<script src="repair.js?v=68"></script>
-<script src="report.js?v=68"></script>
-<script src="sync.js?v=68"></script>
-<script src="extra.js?v=68"></script>
-<script src="home.js?v=68"></script>
-<script src="users.js?v=68"></script>
-<script src="backup.js?v=68"></script>
-<script src="app.js?v=68"></script>
+<script src="core.js?v=70"></script>
+<script src="icons.js?v=70"></script>
+<script src="topup.js?v=70"></script>
+<script src="invbase.js?v=70"></script>
+<script src="invphones.js?v=70"></script>
+<script src="invglass.js?v=70"></script>
+<script src="invpochette.js?v=70"></script>
+<script src="invacc.js?v=70"></script>
+<script src="invreport.js?v=70"></script>
+<script src="invround.js?v=70"></script>
+<script src="barcode.js?v=70"></script>
+<script src="invcolor.js?v=70"></script>
+<script src="invset.js?v=70"></script>
+<script src="repair.js?v=70"></script>
+<script src="report.js?v=70"></script>
+<script src="sync.js?v=70"></script>
+<script src="extra.js?v=70"></script>
+<script src="home.js?v=70"></script>
+<script src="users.js?v=70"></script>
+<script src="backup.js?v=70"></script>
+<script src="app.js?v=70"></script>
 <script>
 if("serviceWorker" in navigator){
   const had=!!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register("sw.js?v=68").then(r=>{
+  navigator.serviceWorker.register("sw.js?v=70").then(r=>{
     r.update().catch(()=>{});
     document.addEventListener("visibilitychange",()=>{if(!document.hidden)r.update().catch(()=>{});});
   }).catch(()=>{});

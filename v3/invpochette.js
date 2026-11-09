@@ -159,7 +159,7 @@ function csNew() {
 }
 function csAddView(id) {
   const i = id ? find(id) : null, nm = i ? i.name : CSD.name; if (!nm) return;
-  fsInit([['color', 'اللون']], {});
+  fsInit([['color', 'اللون']], {}); FS.sugC = () => colSugCs(id);
   $('sh').innerHTML = `<div class="bar"></div><h3>${esc(nm)} — إضافة لون</h3><div id="cc"></div>`
     + `<div class="row2" style="gap:8px"><label style="flex:1">العدد<input id="cq" type="number" value="${i ? 1 : 3}"></label>${i ? '' : `<label style="flex:1">السعر (اختياري)<input id="cpr" type="tel" placeholder="مثال: 30"></label>`}</div>`
     + `<div class="acts"><button class="btn s" onclick="${i ? `csSheetR('${i.id}')` : 'finish(null)'}">${i ? 'رجوع' : 'إلغاء'}</button><button class="btn s" onclick="csAddOk(1)">+ لون آخر</button><button class="btn" onclick="csAddOk(0)">حفظ</button></div>`;

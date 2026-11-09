@@ -434,8 +434,9 @@ html[data-ics=line] .ci .iD{stroke:var(--f)}
 .sug-i{display:block;width:100%;min-height:44px;text-align:start;padding:calc(.6rem * var(--ds)) .9rem;background:none;border:0;border-top:1px solid var(--bl);border-radius:0;color:var(--t);font:inherit;cursor:pointer;box-shadow:none}
 .sug-i:first-child{border-top:0}
 .sug-i:active{background:var(--ab)}
-#ov{top:var(--vvt,0px);bottom:auto;height:var(--vvh,100%)}
-#sh{max-height:calc(var(--vvh,100dvh) * .94)}
+#ov{top:var(--vvt,0px);bottom:auto;height:var(--vvh,100%);box-sizing:border-box;padding-bottom:var(--kb,0px)}
+#sh{max-height:calc((var(--vvh,100dvh) - var(--kb,0px)) * .94)}
+.lockscr{box-sizing:border-box;padding-bottom:var(--kb,0px)}
 
 /* ===== v68: بطاقة الموديل بدوائر الألوان + حقول موحدة ===== */
 .csd.pc{cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation;transition:box-shadow .12s ease,opacity .12s ease}
@@ -448,3 +449,24 @@ html[data-ics=line] .ci .iD{stroke:var(--f)}
 .pcrow .pcp{flex:2}.pcrow .pcn{flex:1}
 #cc>div,#cc2>div{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr))}
 #cc .tag,#cc2 .tag{flex:none;width:100%;white-space:normal;overflow-wrap:anywhere}
+
+/* اللون من الصورة (invcolor.js) */
+.colcam{position:fixed;inset:0;z-index:30;background:rgba(2,6,23,.94);display:flex;flex-direction:column;gap:10px;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom));overflow:auto}
+.cc-box{position:relative;width:100%;max-width:520px;aspect-ratio:3/4;max-height:56dvh;border-radius:var(--rc);overflow:hidden;background:#000;flex:none}
+.cc-box video{width:100%;height:100%;object-fit:cover;display:block}
+.cc-aim{position:absolute;top:50%;left:50%;width:22%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 2px rgba(0,0,0,.55)}
+.cc-res{width:100%;max-width:520px;background:var(--c);color:var(--t);border:1.5px solid var(--b);border-radius:var(--rc);padding:10px 12px}
+.cc-res p{margin:0}
+.cc-sw{display:inline-block;width:34px;height:34px;border-radius:50%;border:2px solid rgba(148,163,184,.6);flex:none}
+.cc-sw.s{width:20px;height:20px}
+.cc-acts{display:flex;gap:8px;width:100%;max-width:520px}
+.cc-acts .btn{flex:1}
+
+/* بطاقة الهاتف: السعة والرام وعدد الهواتف بارزة، وزر «بيع» بلون خفيف من الثيم */
+.phkr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px}
+.phk{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:var(--rt);border:1.5px solid var(--b);background:var(--inp);color:var(--t);font-size:.95rem;font-weight:800;line-height:1.5;direction:ltr;unicode-bidi:isolate}
+.phk.c{direction:rtl;font-size:.85rem;font-weight:700;color:var(--m)}
+.phk.n{direction:rtl;background:var(--ab);border-color:var(--p)}
+.phk.n small{font-size:.76rem;font-weight:600;color:var(--m)}
+.phk.n b{display:inline;font-size:1.05rem;font-weight:800;color:var(--t)}
+.phsel .btn.s.sell{background:var(--ab);border-color:var(--p);color:var(--t)}
