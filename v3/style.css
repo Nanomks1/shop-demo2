@@ -463,9 +463,12 @@ html[data-ics=line] .ci .iD{stroke:var(--f)}
 .cc-acts .btn{flex:1}
 
 /* بطاقة الهاتف: السعة والرام وعدد الهواتف بارزة، وزر «بيع» بلون خفيف من الثيم */
-.ph-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.ph-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px;cursor:pointer}
 .ph-top b{flex:0 1 auto;display:inline;font-size:.96rem}
-.phkr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
+.ph-top .cmp-pr{margin-inline-start:auto}
+.ph-bot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.phkr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px;cursor:pointer}
+.ph-bot .phkr{margin-top:0}
 .phkr .cmp-pr{margin-inline:0}
 .phk{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:var(--rt);border:1.5px solid var(--b);background:var(--inp);color:var(--t);font-size:.84rem;font-weight:800;line-height:1.4;direction:ltr;unicode-bidi:isolate}
 .phk.c{direction:rtl;font-size:.8rem;font-weight:700;color:var(--m)}

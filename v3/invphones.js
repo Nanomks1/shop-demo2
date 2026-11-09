@@ -68,12 +68,16 @@ function phDots(g, cmp) {
 function phGCard(g) {
   const s = phGSt(g), cmp = isCmp('phones') && V.v == 'sec', f0 = g.items[0], sel = g.items.find(x => x.id == PHS);
   const rc = g.ram && g.cap ? g.ram.replace(/gb$/i, '') + '/' + g.cap : (g.ram || g.cap || '');
-  const sub = (g.price ? `<span class="cmp-pr">${esc(fmtPr(g.price))}</span>` : '')
-    + (g.cond != 'جديد' ? `<span class="phk c">${esc(g.cond)}</span>` : '')
+  const pr = g.price ? `<span class="cmp-pr">${esc(fmtPr(g.price))}</span>` : '';
+  const multi = g.items.length > 1 || g.cond != 'جديد' || g.rs;
+  const sub = (g.cond != 'جديد' ? `<span class="phk c">${esc(g.cond)}</span>` : '')
     + (g.items.length > 1 ? `<span class="phk n"><small>المجموع</small><b>${g.cnt}</b></span>` : '')
     + (g.rs ? `<span class="rs">محجوز ${g.rs}</span>` : '');
   const bar = sel ? `<div class="phsel"><span class="csd" style="background:${csBg(sel.color)};color:${csInk(sel.color)}"></span><b style="flex:1;min-width:0">${esc(sel.color || 'عام')}</b><button class="btn s sm sell" onclick="phC('${sel.id}',-1)">− بيع</button><span class="cn">${sel.cnt}</span><button class="btn sm" onclick="phC('${sel.id}',1)">+ إضافة</button><button class="tag" style="margin:0" onclick="phOpen('${sel.id}')">⋯</button></div>` : '';
-  return cardH(`<div class="row2"><div class="cmp-main" onclick="phGO('${f0.id}')"><div class="ph-top"><span class="dotl" style="background:${DT[s]}"></span><b>${esc(g.brand + ' ' + g.name)}</b>${rc ? `<span class="phk">${esc(rc)}</span>` : ''}</div>${sub ? `<div class="phkr">${sub}</div>` : ''}</div><div class="cs-sws">${phDots(g, cmp)}</div></div>${bar}`, colOf(f0), 'cmp');
+  const body = multi
+    ? `<div class="ph-top" onclick="phGO('${f0.id}')"><span class="dotl" style="background:${DT[s]}"></span><b>${esc(g.brand + ' ' + g.name)}</b>${rc ? `<span class="phk">${esc(rc)}</span>` : ''}${pr}</div><div class="ph-bot"><div class="phkr" onclick="phGO('${f0.id}')">${sub}</div><div class="cs-sws">${phDots(g, cmp)}</div></div>`
+    : `<div class="row2"><div class="cmp-main" onclick="phGO('${f0.id}')"><div class="ph-top"><span class="dotl" style="background:${DT[s]}"></span><b>${esc(g.brand + ' ' + g.name)}</b>${rc ? `<span class="phk">${esc(rc)}</span>` : ''}</div>${pr ? `<div class="phkr">${pr}</div>` : ''}</div><div class="cs-sws">${phDots(g, cmp)}</div></div>`;
+  return cardH(body + bar, colOf(f0), 'cmp');
 }
 /* نافذة الموديل: كل الألوان − / + ثم الحد والإضافة */
 function phGO(id) { if (!find(id)) return; phGR(id); sheetOpen(() => { }); }
