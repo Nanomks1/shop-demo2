@@ -1,5 +1,5 @@
 /* ============================================================
-   invacc.js — الإكسسوارات ومجموعات الكابلات والشواحن
+   invacc.js — الإكسسوارات ومجموعات الكابلات والشواحن (تصميم السطر الواحد المرن)
    يُحمَّل بعد invpochette.js.
    ============================================================ */
 
@@ -14,19 +14,50 @@ const acTitle = i => [i.kind, i.conn, fxIn(i), i.brand].filter(Boolean).join(' '
 const acLim = i => i.lim ?? kc(i.kind).lim ?? lim('acl');
 const acSt = i => typeof i.cnt == 'number' ? (i.cnt <= 0 ? 'r' : i.cnt <= acLim(i) ? 'y' : 'g') : i.st;
 const ALB = { g: 'متوفر', y: 'قليل', r: 'نفد' };
+
 function acCard(i) {
-  const s = acSt(i), cn = typeof i.cnt == 'number', sub = [i.tier && 'فئة ' + i.tier, i.pw, i.note].filter(Boolean).map(esc).join(' · ');
-  if (isCmp('acc') && V.v == 'sec') {
-    const act = cn ? `<button class="btn s sm" onclick="acC('${i.id}',-1)">−</button><span class="cn">${i.cnt}</span><button class="btn sm" onclick="acC('${i.id}',1)">+</button>`
-      : ['g', 'y', 'r'].map(x => `<button class="tag ${i.st == x ? 'on' : ''}" style="margin:0;padding:4px 8px;font-size:.76rem" onclick="acS('${i.id}','${x}')">${ALB[x]}</button>`).join('');
-    return cardH(`<div class="row2"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="acEd('${i.id}')"><b>${esc(acTitle(i))}</b>${sub ? `<div class="m">${sub}</div>` : ''}</div>${i.price ? `<span class="cmp-pr">${esc(i.price)}</span>` : ''}${act}</div>`, colOf(i), 'cmp');
-  }
-  return cardH(`<div class="row2"><b>${esc(acTitle(i))}</b><span class="dotl" style="background:${DT[s]}"></span><span class="m">${ALB[s]}</span></div>`
-    + `<div class="kvs"><div class="kv"><small>السعر</small><b>${esc(i.price || '—')}</b></div>${i.tier ? `<div class="kv"><small>الفئة</small><b>${esc(i.tier)}</b></div>` : ''}${i.pw ? `<div class="kv"><small>القدرة</small><b>${esc(i.pw)}</b></div>` : ''}${cn ? `<div class="kv"><small>العدد</small><b>${i.cnt}</b></div>` : ''}</div>`
-    + fxShow(i) + (i.note ? `<div class="m">${esc(i.note)}</div>` : '')
-    + (cn ? `<div class="row2"><button class="btn s sm" onclick="acC('${i.id}',-1)">−</button><button class="btn sm" onclick="acC('${i.id}',1)">+</button><span class="m" style="flex:1;text-align:end">الحد ${acLim(i)}</span></div>` : `<div>${['g', 'y', 'r'].map(x => `<button class="tag ${i.st == x ? 'on' : ''}" onclick="acS('${i.id}','${x}')">${ALB[x]}</button>`).join('')}</div>`)
-    + `<div class="sub"><button class="btn s sm" onclick="acNote('${i.id}')">ملاحظة</button><button class="btn s sm" onclick="acEd('${i.id}')">تعديل</button>${cn ? '' : `<button class="btn s sm" onclick="acCnt('${i.id}')">+ عدد</button>`}${(i.log || []).length ? `<button class="btn s sm" onclick="lgOpen('${i.id}')">السجل</button>` : ''}<button class="btn s sm" onclick="acDel('${i.id}')">حذف</button></div>`, colOf(i));
+  const s = acSt(i), cn = typeof i.cnt == 'number', cmp = isCmp('acc') && V.v == 'sec';
+  const fxParts = S.fields.filter(f => f.sec == 'acc').map(f => fxVal(i, f).length ? f.name + ': ' + fxVal(i, f).join('، ') : '').filter(Boolean);
+  const sub = [i.tier && 'فئة ' + i.tier, i.pw, ...(cmp ? [] : fxParts), i.note].filter(Boolean).map(esc).join(' · ');
+  const act = cn
+    ? `<button class="btn s sm" onclick="acC('${i.id}',-1)">−</button><span class="cn">${i.cnt}</span><button class="btn sm" onclick="acC('${i.id}',1)">+</button>`
+    : ['g', 'y', 'r'].map(x => `<button class="tag ${i.st == x ? 'on' : ''}" style="margin:0;padding:4px 8px;font-size:.76rem" onclick="acS('${i.id}','${x}')">${ALB[x]}</button>`).join('');
+  return cardH(`<div class="row2" style="flex-wrap:wrap;gap:6px"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="acOpen('${i.id}')"><b>${esc(acTitle(i))}</b>${sub ? `<div class="m">${sub}</div>` : ''}</div>${i.price ? `<span class="cmp-pr">${esc(fmtPr(i.price))}</span>` : ''}<div class="row2" style="gap:4px">${act}</div></div>`, colOf(i), 'cmp');
 }
+
+/* نافذة الإجراءات السفلية للإكسسوار (تفتح عند الضغط على السطر) */
+const acGo = (f, id) => { finish(null); setTimeout(() => window[f](id), 380); };
+function acOpen(id) {
+  const i = find(id); if (!i) return;
+  acSheetR(id); sheetOpen(() => { });
+}
+function acSheetR(id) {
+  const i = find(id); if (!i) return;
+  const s = acSt(i), cn = typeof i.cnt == 'number';
+  const meta = [i.tier && 'فئة ' + i.tier, i.pw, cn ? 'الحد ≤ ' + acLim(i) : ''].filter(Boolean).join(' · ');
+  const ctrl = cn
+    ? `<div class="cs-vr"><b>العدد المتوفر</b><button class="btn s cs-sb" onclick="acC('${i.id}',-1);acSheetR('${i.id}')">−</button><span class="cn">${i.cnt}</span><button class="btn cs-sb" onclick="acC('${i.id}',1);acSheetR('${i.id}')">+</button></div>`
+    : `<div class="row2" style="margin:8px 0">${['g', 'y', 'r'].map(x => `<button class="tag ${i.st == x ? 'on' : ''}" style="flex:1;margin:0;min-height:42px" onclick="acS('${i.id}','${x}');acSheetR('${i.id}')">${ALB[x]}</button>`).join('')}</div>`;
+  $('sh').innerHTML = `<div class="bar"></div><div class="row2"><h3>${esc(acTitle(i))}</h3>${i.price ? `<span class="cmp-pr">${esc(fmtPr(i.price))}</span>` : ''}<span class="dotl" style="background:${DT[s]}"></span></div>`
+    + (meta ? `<p class="m" style="margin:2px 0 6px">${esc(meta)}</p>` : '')
+    + fxShow(i)
+    + (i.note ? `<div class="m" style="margin:4px 0">ملاحظة: ${esc(i.note)}</div>` : '')
+    + ctrl
+    + `<div class="cs-acts">`
+    + `<button class="btn s" onclick="acGo('acEd','${i.id}')">تعديل</button>`
+    + `<button class="btn s" onclick="acGo('acDup','${i.id}')">+ سعة / فئة أخرى</button>`
+    + `<button class="btn s" onclick="acGo('acNote','${i.id}')">ملاحظة</button>`
+    + (cn ? '' : `<button class="btn s" onclick="acGo('acCnt','${i.id}')">تحويل لعدد رقمي</button>`)
+    + ((i.log || []).length ? `<button class="btn s" onclick="acGo('lgOpen','${i.id}')">السجل</button>` : '')
+    + `<button class="btn s del" onclick="acGo('acDel','${i.id}')">حذف</button>`
+    + `</div><div class="acts"><button class="btn" onclick="finish(null)">تم</button></div>`;
+}
+function acDup(id) {
+  const r = find(id); if (!r) return;
+  $('sh').innerHTML = ''; sheetOpen(v => acDone(v, PR));
+  acForm({ kind: r.kind, conn: r.conn || '', brand: r.brand || '', tier: r.tier || '', pw: r.pw || '', price: r.price || '', lim: r.lim });
+}
+
 function acView() {
   const j = V.kk, k = j == null ? null : S.tags.kind[j];
   const a = srt(S.items.filter(i => i.sec == 'acc' && !gkc(i.kind).g && (k == null || i.kind == k)), 'acc', acName, i => ({ r: 0, y: 1, g: 2 })[acSt(i)], i => i.at);
@@ -47,12 +78,12 @@ function acS(id, s) { const i = find(id); upd(() => { i.st = s; touch(i, 1); });
 function acNote(id) { const i = find(id); ask('ملاحظة للمشتري', [{ k: 'n', l: 'مثال: بقي 5 حبات', v: i.note || '' }]).then(v => { if (v) upd(() => { i.note = v.n.trim(); i.by = S.me; }); }); }
 function acDel(id) { del('items', id, acName(find(id))); }
 function acAdd() {
-  PR = null; $('sh').innerHTML = `<div class="bar"></div><h3>إضافة إكسسوار</h3><label>ابحث أولاً (مثلاً: micro)<input oninput="acF(this.value)"></label><div id="pr"></div><button class="btn s" onclick="finish(null)">إلغاء</button>`;
+  PR = null; $('sh').innerHTML = `<div class="bar"></div><h3>إضافة إكسسوار</h3><label>ابحث أولاً (مثلاً: micro أو Sandisk)<input oninput="acF(this.value)"></label><div id="pr"></div><button class="btn s" onclick="finish(null)">إلغاء</button>`;
   sheetOpen(v => acDone(v, PR)); acF('');
 }
 function acF(q) {
   const n = nz(q), m = S.items.filter(i => i.sec == 'acc' && nz(acName(i)).includes(n)).slice(0, 6);
-  $('pr').innerHTML = m.map(i => `<button class="card row2" onclick="acForm(find('${i.id}'))"><b>${esc(acName(i))}</b><span class="m">${esc(i.price)}</span></button>`).join('') + `<button class="btn" onclick="acForm({})">+ إكسسوار جديد</button>`;
+  $('pr').innerHTML = m.map(i => `<button class="card row2" onclick="acForm(find('${i.id}'))"><b>${esc(acName(i))}</b><span class="m">${esc(fmtPr(i.price))}</span></button>`).join('') + `<button class="btn" onclick="acForm({})">+ إكسسوار جديد</button>`;
 }
 function acEd(id) { const r = find(id); $('sh').innerHTML = ''; sheetOpen(v => acDone(v, r)); acForm(r); }
 function acForm(rec) {
@@ -63,13 +94,14 @@ function acForm(rec) {
     + `<div id="fx"></div>`
     + `<div class="row2" style="gap:8px;align-items:flex-end"><label style="flex:1;margin-top:8px"${hh('acc', 'price')}>السعر (درهم)<input id="ap" type="tel" value="${esc(rec.price || '')}" placeholder="أو يُؤخذ من الفئة" ${ed && !can('price') ? 'disabled' : ''}></label><label style="flex:1;margin-top:8px"${hh('acc', 'cnt')}>العدد (اختياري)<input id="acn" type="tel" value="${esc(rec.cnt ?? '')}" placeholder="فارغ = متوفر/قليل"></label></div>`
     + `<div class="row2" style="gap:8px;align-items:flex-end"><label style="flex:1;margin-top:8px"${hh('acc', 'brand')}>الماركة (اختياري)<input id="ab" value="${esc(rec.brand || '')}"></label><label style="flex:1;margin-top:8px"${hh('acc', 'lim')}>الحد: «قليل» عند (اختياري)<input id="acl" type="tel" value="${esc(rec.lim ?? '')}"></label></div>`
-    + `<label${hh('acc', 'note')}>ملاحظة<textarea id="an">${esc(rec.note || '')}</textarea></label><div class="acts"><button class="btn s" onclick="finish(null)">إلغاء</button><button class="btn" onclick="acSave()">حفظ</button></div>` + (ed ? '' : moreBtn('acSave'));
+    + `<label${hh('acc', 'note')}>ملاحظة<textarea id="an">${esc(rec.note || '')}</textarea></label><div class="acts"><button class="btn s" onclick="finish(null)">إلغاء</button><button class="btn" onclick="acSave()">حفظ</button></div>`
+    + (ed ? '' : `<button class="btn s" onclick="acSave(2)">حفظ وإضافة مثله (سعة أو فئة أخرى)</button>` + moreBtn('acSave'));
   chipsR();
 }
 function acSave(more) {
   const kind = FS.v.kind; if (!kind) return toast('اختر النوع');
   const k = kc(kind), c = $('acn').value.trim(), l = $('acl').value.trim();
-  finish(fxAtt({ kind, conn: k.conn ? FS.v.conn || '' : '', tier: k.tier ? FS.v.tier || '' : '', pw: gkc(kind).w ? FS.v.pw || '' : '', brand: $('ab').value.trim(), price: $('ap').value.trim() || (k.tier ? FS.v.tier || '' : ''), note: $('an').value.trim(), cnt: c === '' ? undefined : ci(c), lim: l === '' ? undefined : ci(l), _more: more ? 1 : 0 }));
+  finish(fxAtt({ kind, conn: k.conn ? FS.v.conn || '' : '', tier: k.tier ? FS.v.tier || '' : '', pw: gkc(kind).w ? FS.v.pw || '' : '', brand: $('ab').value.trim(), price: $('ap').value.trim() || (k.tier ? FS.v.tier || '' : ''), note: $('an').value.trim(), cnt: c === '' ? undefined : ci(c), lim: l === '' ? undefined : ci(l), _more: more || 0 }));
 }
 function acDone(v, r) {
   if (!v) return; const more = v._more; delete v._more;
@@ -84,7 +116,8 @@ function acDone(v, r) {
   if (d) return toast('موجود مسبقاً: ' + acName(d));
   const o = { id: uid(), sec: 'acc', ...v, st: 'g' }; if (r && r.code) o.code = r.code; touch(o, 1);
   commit('تمت الإضافة', () => S.items.push(o));
-  if (more) setTimeout(acAdd, 350);
+  if (more == 2) setTimeout(() => { sheetOpen(x => acDone(x, PR)); acForm({ kind: v.kind, conn: v.conn, brand: v.brand, tier: v.tier, pw: v.pw, price: v.price, lim: v.lim }); }, 350);
+  else if (more) setTimeout(acAdd, 350);
   else reqChk(acName(o), 1);
 }
 function buyA(id) {
@@ -92,7 +125,8 @@ function buyA(id) {
   if (typeof i.cnt == 'number') return qty(acTitle(i), Math.max(1, acLim(i) + 1 - i.cnt), n => { i.cnt += n; touch(i, 1); reqChk(acName(i), 1); });
   commit('تم الشراء', () => { i.st = 'g'; touch(i, 1); }); reqChk(acName(i));
 }
-/* مجموعات الكابلات والشواحن: الحكم على المجموع (فئة + موصل + قدرة) */
+
+/* مجموعات الكابلات والشواحن: الحكم على المجموع (فئة + موصل + قدرة) — سطر واحد رشيق + نافذة تفاصيل */
 const gkey = i => [i.kind, i.conn || '', i.tier || '', i.pw || ''].join('|').replace(/\//g, '-');
 const AORD = { r: 0, y: 1, g: 2 }, ALB2 = { g: 'متوفر', y: 'قارب النفاد', r: 'نفد' };
 function agList() {
@@ -118,11 +152,25 @@ function agSet(d, fn, tch = true, cf = false) {
   });
 }
 function agCard(d) {
-  const e = encodeURIComponent(d.id), sub = d.tot !== null ? 'المجموع ' + (d.est ? '≈' : '') + d.tot + ' · الحد ' + d.lim : (d.st == 'y' ? 'أقل من ' + d.lim : d.st == 'r' ? 'لا يوجد' : '');
-  if (isCmp('acc') && V.v == 'sec') {
-    return cardH(`<div class="row2"><span class="dotl" style="background:${DT[d.st]}"></span><div class="cmp-main" onclick="agCnt('${e}')"><b>${esc(d.title)}</b>${sub ? `<div class="m">${sub}</div>` : ''}</div>${['g', 'y', 'r'].map(s => `<button class="tag ${d.st == s ? 'on' : ''}" style="margin:0;padding:4px 8px;font-size:.76rem" onclick="agLv('${e}','${s}')">${ALB2[s]}</button>`).join('')}</div>`, '', 'cmp');
-  }
-  return `<div class="card"><div class="row2"><b>${esc(d.title)}</b><span class="dotl" style="background:${DT[d.st]}"></span><span class="m">${ALB2[d.st]}</span></div>${sub ? `<div class="m">${sub}</div>` : ''}${d.mem.length ? `<div>${d.mem.map(i => `<button class="tag" onclick="acEd('${i.id}')">${esc(i.brand || 'بدون ماركة')}${typeof i.cnt == 'number' ? ' · ' + i.cnt : ''}</button>`).join('')}</div>` : ''}<div>${['g', 'y', 'r'].map(s => `<button class="tag ${d.st == s ? 'on' : ''}" onclick="agLv('${e}','${s}')">${ALB2[s]}</button>`).join('')}</div><div class="sub"><button class="btn s sm" onclick="agCnt('${e}')">المجموع</button><button class="btn s sm" onclick="agLimEd('${e}')">الحد</button><button class="btn s sm" onclick="agAddB('${e}')">+ ماركة</button>${can('del') ? `<button class="btn s sm" onclick="agDel('${e}')">حذف</button>` : ''}</div></div>`;
+  const e = encodeURIComponent(d.id), cmp = isCmp('acc') && V.v == 'sec';
+  const brs = !cmp && d.mem.length ? d.mem.map(i => (i.brand || 'عام') + (typeof i.cnt == 'number' ? ' (' + i.cnt + ')' : '')).join('، ') : '';
+  const sub = [d.tot !== null ? 'المجموع ' + (d.est ? '≈' : '') + d.tot : '', 'الحد ' + d.lim, brs].filter(Boolean).join(' · ');
+  return cardH(`<div class="row2" style="flex-wrap:wrap;gap:6px"><span class="dotl" style="background:${DT[d.st]}"></span><div class="cmp-main" onclick="agOpen('${e}')"><b>${esc(d.title)}</b>${sub ? `<div class="m">${esc(sub)}</div>` : ''}</div><div class="row2" style="gap:4px">${['g', 'y', 'r'].map(s => `<button class="tag ${d.st == s ? 'on' : ''}" style="margin:0;padding:4px 8px;font-size:.76rem" onclick="agLv('${e}','${s}')">${ALB2[s]}</button>`).join('')}</div></div>`, '', 'cmp');
+}
+const agGo = (f, e) => { finish(null); setTimeout(() => window[f](e), 380); };
+function agOpen(e) {
+  const d = agD(e); if (!d) return;
+  $('sh').innerHTML = `<div class="bar"></div><div class="row2"><h3>${esc(d.title)}</h3><span class="dotl" style="background:${DT[d.st]}"></span><span class="m">${ALB2[d.st]}</span></div>`
+    + `<p class="m" style="margin:2px 0 8px">${d.tot !== null ? 'المجموع ' + (d.est ? '≈' : '') + d.tot + ' · ' : ''}«قارب النفاد» عند ${d.lim} فأقل</p>`
+    + `<div class="row2" style="margin:8px 0">${['g', 'y', 'r'].map(s => `<button class="tag ${d.st == s ? 'on' : ''}" style="flex:1;margin:0;min-height:42px" onclick="agLv('${e}','${s}');agOpen('${e}')">${ALB2[s]}</button>`).join('')}</div>`
+    + (d.mem.length ? `<label>الماركات المسجلة في هذه المجموعة (اضغط للتعديل)</label><div style="display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px">${d.mem.map(i => `<button class="tag" style="margin:0" onclick="agGo('acEd','${i.id}')">${esc(i.brand || 'بدون ماركة')}${typeof i.cnt == 'number' ? ' · ' + i.cnt : ''}</button>`).join('')}</div>` : '')
+    + `<div class="cs-acts">`
+    + `<button class="btn s" onclick="agGo('agCnt','${e}')">تحديد المجموع</button>`
+    + `<button class="btn s" onclick="agGo('agLimEd','${e}')">تعديل الحد</button>`
+    + `<button class="btn s" onclick="agGo('agAddB','${e}')">+ إضافة ماركة</button>`
+    + (can('del') ? `<button class="btn s del" onclick="agGo('agDel','${e}')">حذف المجموعة</button>` : '')
+    + `</div><div class="acts"><button class="btn" onclick="finish(null)">تم</button></div>`;
+  if (!SH) sheetOpen(() => { });
 }
 const agLv = (e, l) => { const d = agD(e); if (d) { agSet(d, g => { g.lv = l; delete g.cnt; }, true, true); if (l != 'r') reqChk(d.title); } };
 const agBuy = e => { const d = agD(e); if (d) { agSet(d, g => { g.lv = 'g'; delete g.cnt; }, true, true); reqChk(d.title); } };

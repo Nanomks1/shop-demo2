@@ -91,7 +91,7 @@ function usOpen(rec) {
   $('sh').innerHTML = `<div class="bar"></div><h3>${UR.id ? 'تعديل شراء مستعمل' : (UR.repOf ? 'روپريز: استلام هاتف الزبون' : 'شراء هاتف مستعمل')}</h3>`
     + (typeof rpDatalists == 'function' ? rpDatalists() : '')
     + (UR.repTxt ? `<div class="card" style="padding:8px 12px;margin:6px 0;border-inline-start:4px solid var(--p)"><b>مقابل بيع:</b> ${esc(UR.repTxt)}</div>` : '')
-    + `<label>الجهاز / الموديل<input id="u_dev" list="dl_rdevs" value="${esc(UR.dev || '')}" placeholder="اختر ماركة من الأسفل أو اكتب الموديل (مثال: Samsung A54)" oninput="syncUsBrand()"></label>`
+    + `<label>الجهاز / الموديل<input id="u_dev" data-sug="rd" value="${esc(UR.dev || '')}" placeholder="اختر ماركة من الأسفل أو اكتب الموديل (مثال: Samsung A54)" oninput="syncUsBrand()"></label>`
     + `<div style="margin:4px 0 8px">${S.tags.brand.map((b, j) => `<button type="button" class="tag us-br" onclick="pickUsBrand(${j})">${esc(b)}</button>`).join('')}</div>`
     + `<div class="row2" style="gap:8px"><label style="flex:1">سعر شراء المستعمل<input id="u_price" type="tel" value="${esc(UR.price || '')}" oninput="usCalcDiff()"></label>${UR.repOf ? `<label style="flex:1">الفرق المقبوض (الصولد)<input id="u_diff" type="tel" value="${esc(UR.diff || '')}"></label>` : ''}</div>`
     + `<div class="row2" style="gap:8px"><label style="flex:1">اسم البائع<input id="u_name" autocomplete="off" value="${esc(UR.name || '')}"></label><label style="flex:1">رقم البطاقة (CIN)<input id="u_cin" value="${esc(UR.cin || '')}" placeholder="مثال: D123456"></label></div>`
@@ -381,7 +381,7 @@ VW.stat = () => {
 };
 
 /* ---------- التسجيل في الرئيسية والمزيد والبحث ---------- */
-HOME.tools.push(() => `<div class="row2" style="margin:8px 0"><button class="btn s" style="flex:1;margin:0" onclick="go('usd')">${I('cused')} شراء مستعمل</button><button class="btn s" style="flex:1;margin:0" onclick="go('dbt')">${I('cdebt')} الديون${S.debt.filter(d => !d.paid).length ? ' (' + S.debt.filter(d => !d.paid).length + ')' : ''}</button></div>`);
+/* «شراء مستعمل» و«الديون» صارا ضمن أقسام الرئيسية (home.js) */
 MORE.push({ g: 'rep', o: 60, l: 'إحصائيات: الأعطال وطلبات الزبائن', fn: "go('stat')" });
 SRCH.push(
   { k: 'used', l: 'مستعمل', run: n => S.used.filter(u => usMatch(u, n)).slice(0, 20).map(usedCard) },

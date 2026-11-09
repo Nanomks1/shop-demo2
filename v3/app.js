@@ -12,7 +12,10 @@ render();
 function boot2() {
   if (!S.users.length) { admSet(true); setup(); }
   else if (S.pin && ((isAdmin() && !admOk()) || !S.users.some(u => u.name == S.me))) lgShow();
-  try { if (localStorage.getItem('shopLock') == '1' && (S.cfg.lk || S.pin)) lkShow(); } catch (e) { }
+  try {
+    const last = +localStorage.getItem('shopLast') || 0;   // آخر نشاط: إن أغلقه أندرويد وفُتح بعد المدة نفسها نقفل
+    if (lkNeeded() && !$('lg') && (localStorage.getItem('shopLock') == '1' || (last && Date.now() - last > lkSecs() * 1000))) lkShow();
+  } catch (e) { }
 }
 function bkBest() {
   return AUTOBK.all().then(all => {

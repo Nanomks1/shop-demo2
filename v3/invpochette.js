@@ -1,84 +1,90 @@
 /* ============================================================
-   invpochette.js — البوشيط: رجالي/نسائي، ألوان وتصاميم
+   invpochette.js — البوشيط: موديل = سطر واحد، واللون هو الهوية
+   كل لون دائرة بعدده، وحدّها يلوَّن بالحالة (أحمر نفد / برتقالي قارب).
    يُحمَّل بعد invglass.js.
    ============================================================ */
 
-/* ============================ البوشيط (مقسّم الحد والحالة بين رجالي ونسائي) ============================ */
-const csTot = i => (i.v || []).reduce((a, x) => a + x.n, 0);
-const csLim = i => i.lim ?? lim('cl');
-const csGenders = () => (S.tags.gender && S.tags.gender.length) ? S.tags.gender : ['رجالي', 'نسائي'];
-const csGLim = (i, g) => (i.glim && i.glim[g] != null) ? i.glim[g] : csLim(i);
-
-/* إحصائيات كل جنس للبوشيط: [{g, tot, lim, st}] */
-function csGStats(i) {
-  const V0 = i.v || [], G = csGenders();
-  if (V0.length && V0.every(x => !x.g)) {
-    const t = csTot(i), L = csLim(i);
-    return [{ g: 'عام', tot: t, lim: L, st: t <= 0 ? 'r' : t <= L ? 'y' : 'g' }];
-  }
-  const out = [];
-  G.forEach(g => {
-    const L = csGLim(i, g);
-    if (L < 0) return;
-    const tot = V0.filter(x => x.g == g).reduce((a, x) => a + x.n, 0);
-    out.push({ g, tot, lim: L, st: tot <= 0 ? 'r' : tot <= L ? 'y' : 'g' });
-  });
-  return out.length ? out : [{ g: 'عام', tot: csTot(i), lim: csLim(i), st: csTot(i) <= 0 ? 'r' : csTot(i) <= csLim(i) ? 'y' : 'g' }];
+/* ---------- ألوان الدوائر (الأسماء تُطابَق بعد التطبيع nz) ---------- */
+const CS_HEX = Object.fromEntries(Object.entries({
+  'أسود': '#0a0a0a', 'black': '#0a0a0a', 'noir': '#0a0a0a',
+  'أبيض': '#f8fafc', 'white': '#f8fafc', 'blanc': '#f8fafc',
+  'فضي': '#cbd5e1', 'silver': '#cbd5e1', 'argent': '#cbd5e1',
+  'رمادي': '#6b7280', 'gris': '#6b7280', 'gray': '#6b7280', 'grey': '#6b7280',
+  'أزرق': '#2563eb', 'blue': '#2563eb', 'bleu': '#2563eb', 'كحلي': '#1e3a8a', 'سماوي': '#38bdf8',
+  'تركوازي': '#14b8a6', 'تركواز': '#14b8a6',
+  'أخضر': '#16a34a', 'green': '#16a34a', 'vert': '#16a34a',
+  'أصفر': '#facc15', 'yellow': '#facc15', 'jaune': '#facc15',
+  'ذهبي': '#d4a017', 'gold': '#d4a017',
+  'برتقالي': '#f97316', 'orange': '#f97316',
+  'أحمر': '#dc2626', 'red': '#dc2626', 'rouge': '#dc2626',
+  'وردي': '#f472b6', 'pink': '#f472b6', 'rose': '#f472b6',
+  'بنفسجي': '#7c3aed', 'violet': '#7c3aed', 'ليلكي': '#c4b5fd',
+  'بني': '#92400e', 'brown': '#92400e', 'marron': '#92400e', 'بيج': '#e7d5b3', 'beige': '#e7d5b3',
+  'شفاف': 'pat', 'transparent': 'pat'
+}).map(([k, v]) => [nz(k), v]));
+const CS_EMO = Object.fromEntries(Object.entries({
+  'أسود': '⚫', 'black': '⚫', 'noir': '⚫', 'أبيض': '⚪', 'white': '⚪', 'blanc': '⚪', 'شفاف': '⚪', 'transparent': '⚪',
+  'فضي': '🔘', 'رمادي': '🔘', 'silver': '🔘', 'gris': '🔘', 'gray': '🔘', 'grey': '🔘',
+  'أزرق': '🔵', 'كحلي': '🔵', 'سماوي': '🔵', 'blue': '🔵', 'bleu': '🔵',
+  'أخضر': '🟢', 'تركوازي': '🟢', 'تركواز': '🟢', 'green': '🟢', 'vert': '🟢',
+  'أصفر': '🟡', 'ذهبي': '🟡', 'yellow': '🟡', 'jaune': '🟡', 'gold': '🟡', 'برتقالي': '🟠', 'orange': '🟠',
+  'أحمر': '🔴', 'red': '🔴', 'rouge': '🔴', 'وردي': '💗', 'pink': '💗', 'rose': '💗',
+  'بنفسجي': '🟣', 'ليلكي': '🟣', 'violet': '🟣', 'بني': '🟤', 'بيج': '🟤', 'brown': '🟤', 'marron': '🟤', 'beige': '🟤'
+}).map(([k, v]) => [nz(k), v]));
+const csHex = c => CS_HEX[nz(c)] || '';
+const csEmo = c => CS_EMO[nz(c)] || '🔹';
+const csBg = c => { const h = csHex(c); return h == 'pat' ? 'repeating-conic-gradient(#cbd5e1 0 25%,#f8fafc 0 50%) 50%/12px 12px' : (h || '#64748b'); };
+function csInk(c) {
+  const h = csHex(c), m = /^#([0-9a-f]{6})$/i.exec(h);
+  if (h == 'pat') return '#111827';
+  if (!m) return '#fff';
+  const n = parseInt(m[1], 16);
+  return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) > 150 ? '#111827' : '#fff';
 }
 
+/* ---------- البيانات: كل نوع = لون واحد {id, g:'', c, n} ----------
+   تحويل تلقائي مرة واحدة للبيانات القديمة (رجالي/نسائي): تُدمج الأعداد في اللون نفسه. */
+function csN(i) {
+  const V0 = i.v;
+  if (!V0 || !V0.some(x => x.g)) { if (i.glim) delete i.glim; return i; }
+  const out = [];
+  V0.forEach(x => {
+    const c = x.c || '', y = out.find(z => z.c == c);
+    if (y) y.n += x.n; else out.push({ id: x.id, g: '', c, n: x.n });
+  });
+  i.v = out; delete i.glim;
+  return i;
+}
+const csTot = i => (csN(i).v || []).reduce((a, x) => a + x.n, 0);
+const csLim = i => i.lim ?? lim('cl');
+const csVSt = (i, x) => x.n <= 0 ? 'r' : x.n <= csLim(i) ? 'y' : 'g';
 const csSt = i => {
-  const gs = csGStats(i);
-  if (gs.some(x => x.st == 'r')) return 'r';
-  if (gs.some(x => x.st == 'y') || !!(i.need && i.need.trim())) return 'y';
+  const V0 = csN(i).v || [];
+  if (!V0.length) return 'r';
+  const ss = V0.map(x => csVSt(i, x));
+  if (ss.includes('r')) return 'r';
+  if (ss.includes('y') || !!(i.need && i.need.trim())) return 'y';
   return 'g';
 };
-const csGSummaryTxt = i => csGStats(i).map(x => `${x.g} ${x.tot}`).join(' · ');
-const csGBadgesHtml = i => csGStats(i).map(x => `<span class="cs-gbd"><span class="dotl" style="background:${DT[x.st]};width:8px;height:8px"></span><span>${esc(x.g)}:</span><b>${x.tot}</b></span>`).join('');
-const csChipCls = (i, x) => {
-  const L = x.g ? csGLim(i, x.g) : csLim(i);
-  return x.n <= 0 ? 'low' : (L > 0 && x.n <= L) ? 'warn' : '';
-};
+const csChipCls = (i, x) => { const s = csVSt(i, x); return s == 'r' ? 'low' : s == 'y' ? 'warn' : ''; };
+const csGSummaryTxt = i => (csN(i).v || []).map(x => `${x.c || 'عام'} ${x.n}`).join(' · ') || 'لا ألوان';
 
+/* ---------- العرض: دوائر الألوان ---------- */
+function csDot(x, st, txt) {
+  const ring = st == 'r' ? `;box-shadow:0 0 0 3px ${DT.r}` : st == 'y' ? `;box-shadow:0 0 0 3px ${DT.y}` : '';
+  return `<span class="csd" style="background:${csBg(x.c)};color:${csInk(x.c)}${ring}">${txt}</span>`;
+}
+/* شريط الدوائر: الضغط عليه يفتح نافذة الموديل. cmp = بدون أسماء للألوان المعروفة */
 function csChipsHtml(i, cmp) {
-  const V0 = i.v || [], ex = EXP['c_' + i.id];
-  const limV = !ex && V0.length > (cmp ? 3 : 4) ? V0.slice(0, cmp ? 2 : 4) : V0;
-  const missingG = csGenders().map((g, gIdx) => (csGLim(i, g) >= 0 && !V0.some(x => x.g == g)) ? `<div class="cs-chip low"><span>${esc(g)}</span><button onclick="csQuickG('${i.id}',${gIdx},-1)">−</button><b>0</b><button onclick="csQuickG('${i.id}',${gIdx},1)">+</button></div>` : '').join('');
-  return `<div class="cs-chips">` + limV.map(x => `<div class="cs-chip ${csChipCls(i, x)}"><span>${esc([x.g, x.c].filter(Boolean).join('·') || 'عام')}</span><button onclick="csC('${i.id}','${x.id}',-1)">−</button><b>${x.n}</b><button onclick="csC('${i.id}','${x.id}',1)">+</button>${x.n <= 0 && can('del') ? `<button onclick="csX('${i.id}','${x.id}')" style="color:#dc2626">×</button>` : ''}</div>`).join('')
-    + missingG
-    + (V0.length > limV.length || ex ? `<button class="tag" style="margin:0;padding:4px 10px;font-size:.8rem" onclick="toggleExp('c_${i.id}')">${ex ? 'طيّ ▴' : '+' + (V0.length - limV.length) + ' أخرى ▾'}</button>` : '') + `</div>`;
+  const V0 = csN(i).v || [];
+  if (!V0.length) return `<div class="cs-sws" onclick="csOpen('${i.id}')"><span class="m">لا ألوان — اضغط للإضافة</span></div>`;
+  return `<div class="cs-sws" onclick="csOpen('${i.id}')">` + V0.map(x => `<span class="csw">${csDot(x, csVSt(i, x), x.n)}${!cmp || !csHex(x.c) ? `<small class="m">${esc(x.c || 'عام')}</small>` : ''}</span>`).join('') + `</div>`;
 }
-
-function csQuickG(id, gIdx, d) {
-  const it = find(id), g = csGenders()[gIdx]; if (!it || !g) return;
-  let x = (it.v || []).find(y => y.g == g && !y.c) || (it.v || []).find(y => y.g == g);
-  if (!x && d < 0) return;
-  upd(() => {
-    if (!x) { x = { id: uid(), g, c: '', n: 0 }; it.v = it.v || []; it.v.push(x); }
-    x.n = Math.max(0, x.n + d);
-    touch(it);
-  });
-  if (d > 0) reqChk('بوشيط ' + it.name);
-}
-
-function csClrNeed(id) {
-  const i = find(id); if (!i || !i.need) return;
-  commit('تم مسح تنبيه «خاصنا»', () => { i.need = ''; i.by = S.me; });
-}
-
 function csCard(i) {
   const s = csSt(i), cmp = isCmp('case') && V.v == 'sec';
-  const prHtml = i.price ? `<span class="cmp-pr">${esc(fmtPr(i.price))}</span>` : '';
-  const chips = csChipsHtml(i, cmp);
-  if (cmp) {
-    return cardH(`<div class="row2" style="flex-wrap:wrap;gap:6px"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="csQuickNote('${i.id}')"><b>${esc(i.name)}</b></div>${prHtml}${csGBadgesHtml(i)}<button class="btn s sm" onclick="csLimEd('${i.id}')">الحد والسعر</button><button class="btn s sm" onclick="csVar('${i.id}')">+ نوع</button></div>` + chips, colOf(i), 'cmp');
-  }
-  return cardH(`<div class="row2"><b>${esc(i.name)}</b>${prHtml}<span class="dotl" style="background:${DT[s]}"></span><span class="m nw">${TX[s]}</span></div>`
-    + `<div class="cs-meta">${csGBadgesHtml(i)}<span class="m cs-lim">الحد ≤ ${csLim(i)} لكل جنس</span></div>`
-    + chips
-    + fxShow(i)
-    + (i.rem ? `<div class="m" style="margin-top:6px"><span class="dotl" style="background:${DT.g}"></span> باقي: ${esc(i.rem)}</div>` : '')
-    + (i.need ? `<div class="rs row2" style="margin-top:4px;gap:6px"><span class="dotl" style="background:${DT.r}"></span><span style="flex:1">خاصنا: ${esc(i.need)}</span><button class="tag" style="margin:0;padding:2px 8px;font-size:.76rem;color:#dc2626" onclick="csClrNeed('${i.id}')">× مسح</button></div>` : '')
-    + `<div class="sub"><button class="btn s sm" onclick="csQuickNote('${i.id}')">باقي / خاصنا</button><button class="btn s sm" onclick="csVar('${i.id}')">+ لون/نوع</button><button class="btn s sm" onclick="csLimEd('${i.id}')">${i.price ? 'الحد والسعر' : '+ السعر والحد'}</button>${S.fields.some(f => f.sec == 'case') ? `<button class="btn s sm" onclick="csFx('${i.id}')">خانات</button>` : ''}<button class="btn s sm del" onclick="csDel('${i.id}')">حذف</button></div>`, colOf(i));
+  const pr = i.price ? `<span class="cmp-pr">${esc(fmtPr(i.price))}</span>` : '';
+  const nt = (i.need ? `<div class="cs-nt" style="color:${DT.r}">خاصنا: ${esc(i.need)}</div>` : '') + (i.rem ? `<div class="cs-nt m">باقي: ${esc(i.rem)}</div>` : '');
+  return cardH(`<div class="row2" style="gap:8px;flex-wrap:wrap"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="csOpen('${i.id}')"><b>${esc(i.name)}</b>${nt}</div>${pr}${csChipsHtml(i, cmp)}</div>${cmp ? '' : fxShow(i)}`, colOf(i), 'cmp');
 }
 function csView() {
   const allCs = S.items.filter(i => i.sec == 'case'), totPcs = allCs.reduce((s, i) => s + csTot(i), 0), lowCnt = allCs.filter(i => csSt(i) != 'g').length;
@@ -94,83 +100,108 @@ function csView() {
       + (pg.items.map(csCard).join('') + pg.more || emptyBox('لا توجد موديلات بوشيط في هذا الفلتر', 'اضغط على «+ إضافة موديل بوشيط» في الأعلى لإضافة أول موديل'))
   };
 }
-function csC(id, vid, d) { const it = find(id), x = it.v.find(y => y.id == vid); upd(() => { x.n = Math.max(0, x.n + d); touch(it); }); if (d > 0) reqChk('بوشيط ' + it.name); }
-function csX(id, vid) { if (!can('del')) return toast('الحذف للمدير فقط'); const r = find(id); sure('حذف هذا النوع؟').then(y => { if (y) commit('تم الحذف', () => { r.v = r.v.filter(x => x.id != vid); }); }); }
+
+/* ---------- نافذة الموديل: − / + لكل لون ---------- */
+let CQ = '', CSCODE = '', CSD = {}, CSUP = 0;   // CSUP = موديل زادت كميته أثناء النافذة (لفحص طلبات الزبائن عند الإغلاق)
+function csClosed() { const id = CSUP; CSUP = 0; const i = id && find(id); if (i) reqChk('بوشيط ' + i.name, 1); }
+const csGo = (f, id) => { finish(null); setTimeout(() => window[f](id), 450); };
+function csOpen(id) { if (!find(id)) return; CSUP = 0; csSheetR(id); sheetOpen(csClosed); }
+function csSheetR(id) {
+  const i = find(id); if (!i) return;
+  const V0 = csN(i).v || [];
+  const rows = V0.map(x => `<div class="cs-vr">${csDot(x, csVSt(i, x), '')}<b>${esc(x.c || 'عام')}</b>`
+    + (x.n <= 0 && can('del') ? `<button class="tag" style="margin:0;color:${DT.r}" onclick="csX('${i.id}','${x.id}')">× حذف اللون</button>` : '')
+    + `<button class="btn s cs-sb" onclick="csS('${i.id}','${x.id}',-1)">−</button><span class="cn">${x.n}</span><button class="btn cs-sb" onclick="csS('${i.id}','${x.id}',1)">+</button></div>`).join('')
+    || '<p class="m">لا توجد ألوان بعد: اضغط «+ لون».</p>';
+  $('sh').innerHTML = `<div class="bar"></div><h3>${esc(i.name)}</h3>`
+    + `<p class="m">«قارب» عند ${csLim(i)} فأقل لكل لون${i.price ? ' · ' + esc(fmtPr(i.price)) : ''}</p>`
+    + rows
+    + (i.need ? `<div class="rs row2" style="margin-top:8px;gap:6px"><span class="dotl" style="background:${DT.r}"></span><span style="flex:1">خاصنا: ${esc(i.need)}</span><button class="tag" style="margin:0;color:${DT.r}" onclick="csClrNeed('${i.id}');csSheetR('${i.id}')">× مسح</button></div>` : '')
+    + (i.rem ? `<div class="m" style="margin-top:6px"><span class="dotl" style="background:${DT.g}"></span> باقي: ${esc(i.rem)}</div>` : '')
+    + `<div class="cs-acts"><button class="btn s" onclick="csAddView('${i.id}')">+ لون</button><button class="btn s" onclick="csGo('csLimEd','${i.id}')">الحد والسعر</button><button class="btn s" onclick="csGo('csQuickNote','${i.id}')">باقي / خاصنا</button>`
+    + (S.fields.some(f => f.sec == 'case') ? `<button class="btn s" onclick="csGo('csFx','${i.id}')">خانات</button>` : '')
+    + `<button class="btn s" onclick="csGo('csDel','${i.id}')">حذف الموديل</button></div>`
+    + `<div class="acts"><button class="btn" onclick="finish(null)">تم</button></div>`;
+}
+function csC(id, vid, d) {
+  const it = find(id), x = it && (it.v || []).find(y => y.id == vid); if (!x) return;
+  upd(() => { x.n = Math.max(0, x.n + d); touch(it); });
+  if (d > 0) reqChk('بوشيط ' + it.name);
+}
+function csS(id, vid, d) { csC(id, vid, d); if (d > 0) CSUP = id; csSheetR(id); }
+function csX(id, vid) {
+  if (!can('del')) return toast('الحذف للمدير فقط');
+  const r = find(id); if (!r) return;
+  commit('تم حذف اللون', () => { r.v = r.v.filter(x => x.id != vid); touch(r); });
+  csSheetR(id);
+}
 function csDel(id) { del('items', id, find(id).name); }
-let CQ = '', CSCODE = '';
+function csClrNeed(id) {
+  const i = find(id); if (!i || !i.need) return;
+  commit('تم مسح تنبيه «خاصنا»', () => { i.need = ''; i.by = S.me; });
+}
+
+/* ---------- الإضافة: ابحث أولاً، ثم اللون والعدد ---------- */
 function csAdd() {
-  CQ = ''; PR = null; $('sh').innerHTML = `<div class="bar"></div><h3>إضافة بوشيط</h3>${invModelDatalist()}<label>ابحث أولاً: موديل الهاتف<input list="dl_mnames" oninput="csF(this.value)"></label><div id="pr"></div><button class="btn s" onclick="finish(null)">إلغاء</button>`;
-  sheetOpen(v => csDone(v, PR)); csF('');
+  CQ = ''; CSD = {};
+  $('sh').innerHTML = `<div class="bar"></div><h3>إضافة بوشيط</h3>${invModelDatalist()}<label>ابحث أولاً: موديل الهاتف<input data-sug="mn" oninput="csF(this.value)"></label><div id="pr"></div><button class="btn s" onclick="finish(null)">إلغاء</button>`;
+  sheetOpen(csClosed); csF('');
 }
 function csF(q) {
   CQ = q.trim(); const n = nz(q), m = S.items.filter(i => i.sec == 'case' && (!n || nz(i.name).includes(n))).sort((a, b) => b.at - a.at).slice(0, 6);
-  $('pr').innerHTML = m.map(i => `<button class="card row2" onclick="csPick('${i.id}')"><b>${esc(i.name)}</b><span class="m">${csGSummaryTxt(i)}</span></button>`).join('') + `<button class="btn" onclick="csNew()">+ موديل جديد${CQ ? ' «' + esc(CQ) + '»' : ''}</button>`;
+  $('pr').innerHTML = m.map(i => `<button class="card row2" onclick="csPick('${i.id}')"><b>${esc(i.name)}</b><span class="m">${esc(csGSummaryTxt(i))}</span></button>`).join('') + `<button class="btn" onclick="csNew()">+ موديل جديد${CQ ? ' «' + esc(CQ) + '»' : ''}</button>`;
 }
-function csPick(id) { PR = find(id); csVarForm(); }
+function csPick(id) { CSD = { id }; csAddView(id); }
 function csNew() {
-  if (!CQ) return toast('اكتب اسم الموديل'); const d = S.items.find(i => i.sec == 'case' && nz(i.name) == nz(CQ)); if (d) return csPick(d.id);
-  const now = Date.now();
-  PR = { id: uid(), sec: 'case', name: CQ, v: [], by: S.me, at: now, cf: now }; if (CSCODE) { PR.code = CSCODE; CSCODE = ''; } csVarForm();
+  if (!CQ) return toast('اكتب اسم الموديل');
+  const d = S.items.find(i => i.sec == 'case' && nz(i.name) == nz(CQ)); if (d) return csPick(d.id);
+  CSD = { name: CQ }; csAddView(null);
 }
-function csVar(id) { PR = find(id); $('sh').innerHTML = ''; sheetOpen(v => csDone(v, PR)); csVarForm(); }
-function csVarForm() {
-  const isNewModel = !S.items.includes(PR), G = csGenders();
-  if (isNewModel && G.length >= 2) {
-    fsInit([['color', 'لون محدد (اختياري — اتركه فارغاً للإدخال السريع رجالي/نسائي)']], {});
-    $('sh').innerHTML = `<div class="bar"></div><h3>بوشيط جديد: ${esc(PR.name)}</h3>`
-      + `<div class="row2" style="gap:8px"><label style="flex:1">عدد ${esc(G[0])}<input id="cq_g0" type="number" value="3"></label><label style="flex:1">عدد ${esc(G[1])}<input id="cq_g1" type="number" value="3"></label><label style="flex:1">السعر (اختياري)<input id="cpr" type="tel" value="${esc(PR.price || '')}" placeholder="مثال: 30"></label></div>`
-      + `<div id="cc"></div>`
-      + `<div class="acts"><button class="btn s" onclick="finish(null)">إلغاء</button><button class="btn" onclick="finish({dual:1,q0:ci($('cq_g0').value),q1:ci($('cq_g1').value),c:FS.v.color||'',pr:$('cpr').value.trim()})">حفظ</button></div>`;
-    chipsR();
-    return;
-  }
-  fsInit([['gender', 'الجنس'], ['color', 'اللون (اختياري)']], { gender: G[0] || '' });
-  $('sh').innerHTML = `<div class="bar"></div><h3>${esc(PR.name)} — إضافة نوع/لون</h3><div id="cc"></div><div class="row2" style="gap:8px"><label style="flex:1">العدد<input id="cq" type="number" value="1"></label>${isNewModel ? `<label style="flex:1">السعر (اختياري)<input id="cpr" type="tel" value="${esc(PR.price || '')}" placeholder="مثال: 30"></label>` : ''}</div><div class="acts"><button class="btn s" onclick="finish(null)">إلغاء</button><button class="btn" onclick="finish({g:FS.v.gender||'',c:FS.v.color||'',n:ci($('cq').value),pr:$('cpr')?$('cpr').value.trim():''})">حفظ</button></div>`;
+function csAddView(id) {
+  const i = id ? find(id) : null, nm = i ? i.name : CSD.name; if (!nm) return;
+  fsInit([['color', 'اللون']], {});
+  $('sh').innerHTML = `<div class="bar"></div><h3>${esc(nm)} — إضافة لون</h3><div id="cc"></div>`
+    + `<div class="row2" style="gap:8px"><label style="flex:1">العدد<input id="cq" type="number" value="${i ? 1 : 3}"></label>${i ? '' : `<label style="flex:1">السعر (اختياري)<input id="cpr" type="tel" placeholder="مثال: 30"></label>`}</div>`
+    + `<div class="acts"><button class="btn s" onclick="${i ? `csSheetR('${i.id}')` : 'finish(null)'}">${i ? 'رجوع' : 'إلغاء'}</button><button class="btn s" onclick="csAddOk(1)">+ لون آخر</button><button class="btn" onclick="csAddOk(0)">حفظ</button></div>`;
   chipsR();
 }
-function csDone(v, r) {
-  if (!v || !r) return;
-  const pr = v.pr; delete v.pr;
-  commit('تمت الإضافة', () => {
-    if (pr && can('price')) r.price = pr;
-    if (!S.items.includes(r)) S.items.push(r);
-    if (v.dual) {
-      const G = csGenders();
-      [[G[0], v.q0], [G[1], v.q1]].forEach(([gName, q]) => {
-        if (!gName) return;
-        const x = r.v.find(y => y.g == gName && y.c == (v.c || ''));
-        if (x) x.n += q; else r.v.push({ id: uid(), g: gName, c: v.c || '', n: q });
-      });
-    } else {
-      const x = r.v.find(y => y.g == v.g && y.c == v.c);
-      if (x) x.n += v.n; else r.v.push({ id: uid(), ...v });
+function csAddOk(more) {
+  const c = FS.v.color || '', n = ci($('cq').value), pr = $('cpr') ? $('cpr').value.trim() : '';
+  let i = CSD.id ? find(CSD.id) : null;
+  if (!i && !CSD.name) return;
+  upd(() => {
+    if (!i) {
+      const now = Date.now();
+      i = { id: uid(), sec: 'case', name: CSD.name, v: [], by: S.me, at: now, cf: now };
+      if (CSCODE) { i.code = CSCODE; CSCODE = ''; }
+      S.items.push(i); CSD = { id: i.id };
     }
-    touch(r, 1);
+    if (pr && can('price')) i.price = pr;
+    csN(i); i.v = i.v || [];
+    const x = i.v.find(y => y.c == c);
+    if (x) x.n += n; else i.v.push({ id: uid(), g: '', c, n });
+    touch(i, 1);
   });
-  if (csTot(r) > 0) reqChk('بوشيط ' + r.name, 1);
+  if (n > 0) CSUP = i.id;
+  toast('تمت الإضافة');
+  if (more) csAddView(i.id); else finish(null);
 }
+
+/* ---------- الحد والسعر والملاحظات والخانات ---------- */
 function csFx(id) {
   const i = find(id); fsInit([], {}, 'case', i);
   $('sh').innerHTML = '<div class="bar"></div><h3>خانات: ' + esc(i.name) + '</h3><div id="fx"></div><div class="acts"><button class="btn s" onclick="finish(null)">إلغاء</button><button class="btn" onclick="finish({})">حفظ</button></div>';
   sheetOpen(v => { if (v) upd(() => { i.x = { ...FS.fx }; i.by = S.me; }); }); fxR();
 }
 function csLimEd(id) {
-  const i = find(id), G = csGenders(), gl = i.glim || {};
-  const F = [
+  const i = find(id);
+  ask('الحد والسعر — بوشيط ' + i.name, [
     { k: 'p', l: 'سعر البيع (درهم — اختياري)', t: 'tel', v: i.price || '' },
-    { k: 'n', l: `الحد العام لهذا الموديل لكل جنس: «قارب النفاد» عند عدد فأقل (فارغ = الحد العام ${lim('cl')})`, t: 'tel', v: i.lim ?? '' }
-  ];
-  G.forEach((g, idx) => F.push({ k: 'g' + idx, l: `حد خاص بـ «${g}» فقط (فارغ = يتبع الحد أعلاه · اكتب -1 إن كنتم لا تجلبون ${g} لهذا الموديل)`, t: 'tel', v: gl[g] != null ? gl[g] : '' }));
-  ask('الحد والسعر — بوشيط ' + i.name, F).then(v => {
+    { k: 'n', l: `«قارب النفاد» عند عدد فأقل لكل لون (فارغ = الحد العام ${lim('cl')})`, t: 'tel', v: i.lim ?? '' }
+  ]).then(v => {
     if (!v) return; const n = v.n.trim();
     upd(() => {
       if (n === '') delete i.lim; else i.lim = ci(n);
-      const newGl = {};
-      G.forEach((g, idx) => {
-        const s = dg(v['g' + idx] ?? '').trim();
-        if (s !== '') newGl[g] = s === '-1' ? -1 : ci(s);
-      });
-      if (Object.keys(newGl).length) i.glim = newGl; else delete i.glim;
       if (can('price')) i.price = (v.p || '').trim();
       i.by = S.me;
     });
@@ -178,26 +209,21 @@ function csLimEd(id) {
 }
 function csQuickNote(id) {
   const i = find(id);
-  ask('بوشيط ' + i.name, [{ k: 'rem', l: 'شنو باقي عندنا فالمحل؟ (مثال: غير النسائي)', v: i.rem || '' }, { k: 'need', l: 'شنو خاص يجيب المعلم؟ (مثال: ألوان رجالية / كحل)', v: i.need || '' }]).then(v => { if (v) commit('تم التحديث', () => { i.rem = v.rem.trim(); i.need = v.need.trim(); i.by = S.me; }); });
+  ask('بوشيط ' + i.name, [{ k: 'rem', l: 'شنو باقي عندنا فالمحل؟ (مثال: غير الأسود)', v: i.rem || '' }, { k: 'need', l: 'شنو خاص يجيب المعلم؟ (مثال: فضي / كحلي)', v: i.need || '' }]).then(v => { if (v) commit('تم التحديث', () => { i.rem = v.rem.trim(); i.need = v.need.trim(); i.by = S.me; }); });
+}
+
+/* ---------- الشراء: يُضاف العدد للألوان الناقصة (أو لكل الألوان إن لم يوجد ناقص) ---------- */
+function csBuyApply(i, n) {
+  csN(i); i.v = i.v || [];
+  if (!i.v.length) i.v.push({ id: uid(), g: '', c: '', n });
+  else { const t = i.v.filter(x => csVSt(i, x) != 'g'); (t.length ? t : i.v).forEach(x => x.n += n); }
+  i.need = ''; touch(i, 1);
 }
 function buyC(id) {
   const i = find(id); if (!i) return;
-  const badG = csGStats(i).filter(x => x.st != 'g');
-  const lbl = badG.length ? badG.map(x => x.g).join(' + ') : 'لكل نوع';
-  qty(`بوشيط ${i.name} (${lbl})`, 3, n => {
-    if (badG.length && badG[0].g != 'عام') {
-      badG.forEach(b => {
-        const vars = (i.v || []).filter(x => x.g == b.g);
-        if (!vars.length) { i.v = i.v || []; i.v.push({ id: uid(), g: b.g, c: '', n }); }
-        else {
-          const z = vars.filter(x => x.n <= 0);
-          (z.length ? z : [vars[0]]).forEach(x => x.n += n);
-        }
-      });
-    } else {
-      const z = (i.v || []).filter(x => x.n <= 0), t = z.length ? z : (i.v || []);
-      t.forEach(x => x.n += n);
-    }
-    i.need = ''; touch(i, 1); reqChk('بوشيط ' + i.name, 1);
-  });
+  const bad = (csN(i).v || []).filter(x => csVSt(i, x) != 'g'), lbl = bad.length ? bad.map(x => x.c || 'عام').join(' + ') : 'كل الألوان';
+  qty(`بوشيط ${i.name} (${lbl})`, 3, n => { csBuyApply(i, n); reqChk('بوشيط ' + i.name, 1); });
 }
+
+/* تحويل البيانات القديمة عند الإقلاع (يُحفظ مع أول حفظ عادي) */
+S.items.forEach(i => { if (i.sec == 'case') csN(i); });

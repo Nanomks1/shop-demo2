@@ -19,7 +19,7 @@ const touch = (i, cf) => {
 };
 const sumv = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
 S.fields = S.fields || []; S.gg = S.gg || []; S.ag = S.ag || [];
-/* cl: 2 يعني لكل جنس (رجالي/نسائي): 0 نفد (أحمر)، 1 أو 2 قارب (برتقالي)، 3 فأكثر متوفر (أخضر) */
+/* cl: 2 يعني لكل لون: 0 نفد (أحمر)، 1 أو 2 قارب (برتقالي)، 3 فأكثر متوفر (أخضر) */
 Object.assign(DL0, { cl: 2, gA: 30, gB: 20, gC: 10, gY: 5, acl: 3, agl: 10 });
 LM.push(
   ['gA', 'أنتي كاس: مستوى «غامق» يُحسب كـ (قطعة)'], ['gB', 'أنتي كاس: مستوى «أخضر» يُحسب كـ (قطعة)'], ['gC', 'أنتي كاس: مستوى «فاتح» يُحسب كـ (قطعة)'],
@@ -28,13 +28,15 @@ LM.push(
 );
 
 /* قائمة إكمال تلقائي موحدة لأسماء الموديلات في المحل */
-function invModelDatalist() {
+function invModelNames() {
   const m = new Set();
   ph().forEach(i => { if (i.name) m.add(i.name.trim()); });
   (S.gg || []).forEach(g => (g.models || []).forEach(x => m.add(x.trim())));
   S.items.filter(i => i.sec == 'case').forEach(i => { if (i.name) m.add(i.name.trim()); });
-  return `<datalist id="dl_mnames">${[...m].slice(0, 60).map(x => `<option value="${esc(x)}">`).join('')}</datalist>`;
+  return [...m];
 }
+SUG.mn = invModelNames;
+function invModelDatalist() { return ''; }   // قديمة: صار الإكمال داخل التطبيق (SUG.mn)
 
 /* ---------- طيّ القوائم الطويلة + التصفح التدريجي للأقسام الكبيرة + وضع العرض المضغوط ---------- */
 const EXP = {}, PG = {};   // حفظ حالة فتح القوائم المطوية وعدد البطاقات المعروضة أثناء الجلسة

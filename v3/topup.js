@@ -109,7 +109,7 @@
     if (ph) return `<div class="tpr" id="tpr_${id}"><span class="dotl" id="tpd_${id}"></span><span class="tpn">رصيد الهاتف</span><span class="tpt" id="tpt_${id}"></span>`
       + `<input class="tpi" id="tpi_${id}" inputmode="decimal" placeholder="—" value="${v == null ? '' : esc(v)}" oninput="tpIn('${op}','p',${n},this)" onchange="tpIn('${op}','p',${n},this,1)" onfocus="this.select()"><span class="m tpu">درهم</span></div>`;
     const B = (x, l) => `<button class="tps ${x} ${s == x ? 'on' : ''}" id="tps${x}_${id}" onclick="tpSt('${op}',${n},'${x}')">${l}</button>`;
-    return `<div class="tpr c" id="tpr_${id}" style="--dc:${DC[n]}"><span class="tpd">${n}<small>درهم</small></span>` + B('g', `<bdi>${gvOf(n)}+</bdi>`) + B('y', 'قارب') + B('r', 'نفد')
+    return `<div class="tpr c" id="tpr_${id}" style="--dc:${DC[n]}"><span class="tpd">${n}<small>درهم</small></span>` + B('g', gvOf(n) + '+') + B('y', 'قارب') + B('r', 'نفد')
       + `<input class="tpi" id="tpi_${id}" inputmode="numeric" placeholder="${v == null ? '—' : est ? (s == 'g' ? gvOf(n) + '+' : '≈' + v) : '—'}" value="${v == null || est ? '' : esc(v)}" oninput="tpIn('${op}','c',${n},this)" onchange="tpIn('${op}','c',${n},this,1)" onfocus="this.select()"></div>`;
   };
   VW.tp = () => {

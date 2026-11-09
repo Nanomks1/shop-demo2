@@ -281,7 +281,7 @@ function rWA(id) {
 }
 
 /* ---------- قوائم الإكمال التلقائي (الزبائن والأجهزة) ---------- */
-function rpDatalists() {
+function rpSugData() {
   const names = new Map(), devs = new Set();
   [...(S.rp || []), ...(S.debt || []), ...(S.used || [])].forEach(x => {
     if (x.name && x.tel && !names.has(x.name)) names.set(x.name, x.tel);
@@ -289,9 +289,11 @@ function rpDatalists() {
   });
   (S.items || []).forEach(i => { if (i.sec == 'phones') devs.add((i.brand + ' ' + i.name).trim()); });
   (S.guide || []).forEach(g => { if (g.m) devs.add(g.m.trim()); });
-  return `<datalist id="dl_rnames">${[...names.keys()].slice(0, 40).map(n => `<option value="${esc(n)}">`).join('')}</datalist>`
-    + `<datalist id="dl_rdevs">${[...devs].slice(0, 50).map(d => `<option value="${esc(d)}">`).join('')}</datalist>`;
+  return { names: [...names.keys()], devs: [...devs] };
 }
+SUG.rn = () => rpSugData().names.slice(0, 40);
+SUG.rd = () => rpSugData().devs.slice(0, 50);
+function rpDatalists() { return ''; }   // قديمة: صار الإكمال داخل التطبيق
 
 function rEd(id) { const rec = id ? rf(id) : {}; $('sh').innerHTML = ''; sheetOpen(v => rDone(v, rec)); rForm(rec); }
 function rForm(rec) {
@@ -303,8 +305,8 @@ function rForm(rec) {
   const moreOpen = (rec.imei || ZI || +rec.war) ? ' open' : '';
   $('sh').innerHTML = `<div class="bar"></div><div class="row2"><h3 style="color:var(--t);margin:0;flex:1">${rec.id ? 'تعديل صيانة' : 'استلام هاتف'}</h3>${tkShow ? `<span class="tk-b" style="font-size:1.05rem;padding:4px 12px" title="اكتب هذا الرقم على ملصق الهاتف">#${esc(tkShow)}</span>` : '<span class="m" style="font-size:.82rem">رقم التذكرة يظهر بعد الحفظ</span>'}</div>`
     + rpDatalists()
-    + `<div class="row2" style="gap:8px;align-items:flex-end"><label style="flex:1">اسم الزبون<input id="r_n" list="dl_rnames" value="${esc(rec.name || '')}" oninput="rH(1)"></label><label style="flex:1">رقم الهاتف<input id="r_t" type="tel" value="${esc(rec.tel || '')}" oninput="rH()"></label></div><div id="rh" class="m" style="margin-top:4px"></div>`
-    + `<label>نوع الهاتف (اكتب أو اختر الماركة تحته)<input id="r_v" list="dl_rdevs" value="${esc(rec.dev || '')}" placeholder="مثال: Samsung A15" oninput="syncRpTags();checkDeviceHistory();suggestGuidePrice()"></label>`
+    + `<div class="row2" style="gap:8px;align-items:flex-end"><label style="flex:1">اسم الزبون<input id="r_n" data-sug="rn" value="${esc(rec.name || '')}" oninput="rH(1)"></label><label style="flex:1">رقم الهاتف<input id="r_t" type="tel" value="${esc(rec.tel || '')}" oninput="rH()"></label></div><div id="rh" class="m" style="margin-top:4px"></div>`
+    + `<label>نوع الهاتف (اكتب أو اختر الماركة تحته)<input id="r_v" data-sug="rd" value="${esc(rec.dev || '')}" placeholder="مثال: Samsung A15" oninput="syncRpTags();checkDeviceHistory();suggestGuidePrice()"></label>`
     + `<div id="rp_br_tags" style="margin:4px 0 6px">${S.tags.brand.map((b, j) => `<button type="button" class="tag rp-br-tg" onclick="pickRpBrand(${j})">${esc(b)}</button>`).join('')}</div><div id="rp_dev_hist" class="m" style="color:#d97706;font-weight:700"></div>`
     + `<label>العطل / المشكل (اكتب أو اختر من الأعطال تحته)<input id="r_f" value="${esc(rec.fault || '')}" placeholder="مثال: تغيير شاشة" oninput="syncRpTags();suggestGuidePrice()"></label>`
     + `<div id="rp_fl_tags" style="margin:4px 0 6px">${S.tags.fault.map((x, j) => `<button type="button" class="tag rp-fl-tg" onclick="pickRpFault(${j})">${esc(x)}</button>`).join('')}</div>`

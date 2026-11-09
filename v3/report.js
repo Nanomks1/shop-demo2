@@ -44,28 +44,12 @@
   window.rcQuick = (fnName, arg) => {
     if (fnName == 'buyP') {
       const i = find(arg); if (!i) return;
-      const add = Math.max(1, phLim(i) + 1 - av(i));
+      const add = Math.max(1, phLim(i) + 1 - phGroup(i).tot);
       commit('تم الشراء (+' + add + '): ' + i.brand + ' ' + i.name, () => { i.cnt += add; touch(i, 1); });
       if (typeof reqChk == 'function') reqChk(i.brand + ' ' + i.name);
     } else if (fnName == 'buyC') {
       const i = find(arg); if (!i) return;
-      const badG = typeof csGStats == 'function' ? csGStats(i).filter(x => x.st != 'g') : [];
-      commit('تم شراء بوشيط ' + i.name + ' (+3)', () => {
-        if (badG.length && badG[0].g != 'عام') {
-          badG.forEach(b => {
-            const vars = (i.v || []).filter(x => x.g == b.g);
-            if (!vars.length) { i.v = i.v || []; i.v.push({ id: uid(), g: b.g, c: '', n: 3 }); }
-            else {
-              const z = vars.filter(x => x.n <= 0);
-              (z.length ? z : [vars[0]]).forEach(x => x.n += 3);
-            }
-          });
-        } else {
-          const z = (i.v || []).filter(x => x.n <= 0), t = z.length ? z : (i.v || []);
-          t.forEach(x => x.n += 3);
-        }
-        i.need = ''; touch(i, 1);
-      });
+      commit('تم شراء بوشيط ' + i.name + ' (+3)', () => csBuyApply(i, 3));
       if (typeof reqChk == 'function') reqChk('بوشيط ' + i.name);
     } else if (fnName == 'buyA') {
       const i = find(arg); if (!i) return;
@@ -149,9 +133,7 @@
   };
 
   /* ---------- شاشة التقرير ---------- */
-  const nwCnt = h => h
-    .replace(/((?:—\s*)?(?:العدد\s*≈?[0-9٠-٩]+|قارب النفاد|نفد|باقي\s+[0-9٠-٩]+))\s*$/, '<span class="nw">$1</span>')
-    .replace(/(المتوفر\s*\([^)]+\))/, '<span class="nw">$1</span>');
+  const nwCnt = h => h.replace(/((?:—\s*)?العدد\s*[0-9٠-٩]+)\s*$/, '<span style="white-space:nowrap">$1</span>');
   const SECI = { topup: 'ctopup', phones: 'cphone', glass: 'cglass', pochette: 'ccase', acc: 'cacc' };
   const secT = b => (SECI[b.k] ? I(SECI[b.k]) + ' ' : '') + esc(String(b.t).replace(/^[^\u0600-\u06FFA-Za-z0-9]+/, ''));
   const rrow = l => {
@@ -195,7 +177,7 @@
     if ((F == 'all' || F == 'phones') && c.st && !c.hs.includes('phones') && s.length)
       h += '<h3>الهواتف المتوفرة</h3><div class="card rlist">' + s.map(i => `<div class="rrow"><span class="rt">${esc(stkN(i))}</span><span class="m">${i.cnt}${rsQ(i) ? ' (محجوز ' + rsQ(i) + ')' : ''}${c.pr && i.price ? ' · ' + esc(dh(i.price)) : ''}</span></div>`).join('') + '</div>';
     if (!h.includes('<h3')) h += emptyBox('لا يوجد نقص في المخزون حالياً ✓', 'جميع الأصناف متوفرة فوق الحد المطلوب');
-    h += `<details class="card" style="margin-top:14px"><summary><b>معاينة النص</b></summary><div style="white-space:pre-wrap;margin-top:10px;padding-top:8px;border-top:1px dashed var(--b);line-height:1.8">${esc(generateReportText(F))}</div></details>`
+    h += `<details class="card" style="margin-top:14px"><summary><b>معاينة النص</b></summary><div style="white-space:pre-wrap;margin-top:8px;line-height:1.8">${esc(generateReportText(F))}</div></details>`
       + `<div class="rbar"><button class="btn" onclick="rcSend()">${I('send')} إرسال بالواتساب</button><button class="btn s" onclick="rcCopy()">نسخ</button></div>`;
     return { t: 'التقرير اليومي', h };
   };

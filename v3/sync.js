@@ -4,7 +4,7 @@
    ============================================================ */
 const SY_URL='https://jvubqqvwuonvgowqwvqa.supabase.co';
 const SY_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2dWJxcXZ3dW9udmdvd3F3dnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NjU1MjksImV4cCI6MjEwODQ0MTUyOX0.wKnUu_HFa0eByC9ypH7kGyEeIJSUPH87hp56ZhROApw';
-const SY_ARR=['items','rp','req','gg','guide','fields','ag','used','debt','tp'],SY_ONE=['tags','perm','users','pin','cfg'],SY_ENC=['rp','req','used','debt'],SY_LOC=['fs','th','fab','cmp','bcQuick'],syIsEnc=k=>SY_ENC.includes(k.split('/')[0])||k.startsWith('meta/img:')||k=='one/users'||k=='one/pin',SY_E0='1970-01-01T00:00:00+00:00';
+const SY_ARR=['items','rp','req','gg','guide','fields','ag','used','debt','tp'],SY_ONE=['tags','perm','users','pin','cfg'],SY_ENC=['rp','req','used','debt'],SY_LOC=['fs','th','fab','cmp','bcQuick','hl','ics','lkp'],syIsEnc=k=>SY_ENC.includes(k.split('/')[0])||k.startsWith('meta/img:')||k=='one/users'||k=='one/pin',SY_E0='1970-01-01T00:00:00+00:00';
 const SYM={off:'متوقفة',ok:'متصلة',busy:'جارٍ المزامنة…',offline:'لا يوجد إنترنت (سيُعاد المحاولة)',err:'خطأ'};
 let SYS={st:'off',msg:'',busy:false,key:null,last:null,t:0,rr:0,again:0},SYR='first';
 const syLS=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};

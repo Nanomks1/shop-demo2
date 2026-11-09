@@ -19,7 +19,7 @@ const fd = t => { const d = new Date(t), p = n => String(n).padStart(2, '0'); re
 const IC={home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',tool:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',sl:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',back:'<path d="M5 12h14M12 5l7 7-7 7"/>'};
 Object.assign(IC,{lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M8 7v10M12 7v10M16 7v10"/>',mobile:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',box:'<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.3 7l8.7 5 8.7-5"/>',plug:'<path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/>',check:'<path d="M20 6 9 17l-5-5"/>',bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>',tag:'<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',chat:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>',send:'<path d="m22 2-7 20-4-9-9-4zM22 2 11 13"/>',cloud:'<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/>'});
 Object.assign(IC,{search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'});
-const ic = n => (typeof CI != 'undefined' && CI[n]) ? `<svg class="ic ci" viewBox="0 0 100 100" aria-hidden="true">${CI[n]}</svg>` : `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+const ic = n => (typeof CI != 'undefined' && CI[n]) ? `<svg class="ic ci" viewBox="0 0 100 100" aria-hidden="true"${typeof CIH != 'undefined' && CIH[n] ? ` style="--hue:${CIH[n]}"` : ''}>${CI[n]}</svg>` : `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
 const I = n => ic(n).replace('class="ic', 'class="ic s');
 
 /* ---------- أيقونات SVG إضافية حديثة (بدون إيموجي) ---------- */
@@ -53,8 +53,7 @@ const LM = [
   ['low', 'هاتف: «قارب النفاد» عند عدد ≤ (الحد العام)'],
   ['gmin', 'أنتي كاس: «قارب النفاد» عند مجموع ≤ (الحد العام)'],
   ['cl', 'بوشيط: «قارب النفاد» عند مجموع ≤ (الحد العام)'],
-  ['stale', 'الجولة: يُعتبر الصنف غير مؤكد بعد (أيام)'],
-  ['alk', 'قفل التطبيق والمدير تلقائياً بعد (دقائق بلا استعمال)']
+  ['stale', 'الجولة: يُعتبر الصنف غير مؤكد بعد (أيام)']
 ];
 
 /* ---------- البحث: توحيد الكتابة (عربي/إنجليزي/أرقام) ---------- */
@@ -68,7 +67,7 @@ const nzOf = (o, fn) => { let c = NZC.get(o); if (!c || c.v !== ST.ver) { c = { 
 const DEF = {
   me: '', users: [], pin: '',
   perm: { del: 'a', price: 'a', tags: 'a', fields: 'a' },
-  cfg: { fs: 18, th: 'b-a' },
+  cfg: { fs: 18, th: 'a:light:b:navy:b:100' },
   tags: {
     brand: ['Samsung', 'Xiaomi', 'Redmi', 'Realme', 'Oppo', 'Vivo', 'Tecno', 'Infinix', 'iPhone', 'Itel'],
     color: ['أسود', 'أبيض', 'أزرق', 'أحمر', 'أخضر', 'ذهبي', 'فضي', 'وردي'],
@@ -234,11 +233,16 @@ function toast(msg, undo, ms) {
 
 /* ---------- التنقل وزر الرجوع ---------- */
 function go(v, p) {
+  sugClose();
   V = { v, ...p }; Q = ''; QP = 0; history.pushState({ V }, ''); render();
   scrollTo(0, 0);
 }
 addEventListener('popstate', e => {
   const s = e.state || {};
+  if ($('lk') || $('lg')) { history.pushState({ V, sh: SH ? 1 : 0 }, ''); return; }   // شاشة القفل: الرجوع لا يغلق شيئاً تحتها
+  if (SH && SHD && Date.now() - SHARM > 2500) {   // في النافذة كتابة: أول رجوع للتنبيه فقط
+    SHARM = Date.now(); toast('اضغط رجوع مرة أخرى لإغلاق النافذة (ما كتبته محفوظ كمسودة)'); history.pushState({ V, sh: 1 }, ''); return;
+  }
   if (SH) { hideSheet(); return; }
   if (s.root) {   // وصلنا لأسفل المكدّس: اضغط مرتين للخروج
     if (Date.now() - ARM < 2500) { history.back(); return; }
@@ -249,13 +253,71 @@ addEventListener('popstate', e => {
 function startHistory() { history.replaceState({ root: 1 }, ''); history.pushState({ V }, ''); }
 
 /* ---------- النافذة السفلية ---------- */
-function sheetOpen(res) { SH = true; SHR = { res, val: null }; $('ov').hidden = false; history.pushState({ V, sh: 1 }, ''); }
+function sheetOpen(res) { SH = true; SHR = { res, val: null }; $('ov').hidden = false; history.pushState({ V, sh: 1 }, ''); SHD = 0; SHE = draftFields().every(e => !e.value); draftRestore(); }
 function hideSheet() {
   HK.hide.forEach(f => { try { f(); } catch (e) { } });
+  sugClose(); clearTimeout(DRT);
   $('ov').hidden = true; SH = false;
   const r = SHR; SHR = null; r && r.res(r.val);
 }
-const finish = v => { if (!SHR) return; SHR.val = v; history.back(); };
+const finish = v => { if (!SHR) return; SHR.val = v; draftClear(); history.back(); };
+
+/* ---------- مسودة النافذة: ما كتبته لا يضيع إن أُغلقت النافذة بالخطأ أو انقطع التطبيق ---------- */
+let SHD = 0, SHE = 0, SHARM = 0, DRT = 0;   // SHD: كُتب شيء · SHE: فُتحت فارغة (إدخال جديد) · SHARM: تنبيه الرجوع
+const DRK = 'shopDraft';
+const draftFields = () => [...($('sh') ? $('sh').querySelectorAll('input[id],textarea[id]') : [])].filter(e => !['hidden', 'password', 'file', 'checkbox', 'radio', 'button', 'range'].includes(e.type));
+const draftKey = F => (V && V.v || '') + '|' + F.map(e => e.id).sort().join(',');
+function draftSave() {
+  if (!SH || !SHE) return;   // نحفظ مسودة نماذج الإدخال الجديد فقط، لا نماذج تعديل عنصر موجود
+  const F = draftFields(), vals = {};
+  F.forEach(e => { if (e.value) vals[e.id] = e.value; });
+  try { if (Object.keys(vals).length) localStorage.setItem(DRK, JSON.stringify({ k: draftKey(F), t: Date.now(), v: vals })); else localStorage.removeItem(DRK); } catch (e) { }
+}
+function draftClear() { clearTimeout(DRT); SHD = 0; try { localStorage.removeItem(DRK); } catch (e) { } }
+function draftRestore() {
+  try {
+    const F = draftFields(); if (!F.length || !SHE) return;
+    const d = JSON.parse(localStorage.getItem(DRK) || 'null');
+    if (!d || d.k != draftKey(F) || Date.now() - d.t > 1800000) return;
+    let n = 0; F.forEach(e => { if (d.v[e.id]) { e.value = d.v[e.id]; n++; } });
+    if (n) { SHD = 1; SHE = 1; toast('استُعيد ما كتبته سابقاً في هذه النافذة'); }
+  } catch (e) { }
+}
+document.addEventListener('input', e => {
+  if (!SH || !e.target.closest || !e.target.closest('#sh')) return;
+  SHD = 1; clearTimeout(DRT); DRT = setTimeout(draftSave, 400);
+}, true);
+
+/* ---------- اقتراحات داخل التطبيق (بدل قائمة المتصفح الأصلية): تظهر تحت الحقل بلون الثيم ولا تغطي لوحة المفاتيح ---------- */
+const SUG = {};   // اسم المصدر ← دالة ترجع مصفوفة نصوص (يُستعمل في الحقل: data-sug="اسم")
+function sugClose() { document.querySelectorAll('.sug').forEach(e => e.remove()); }
+function sugShow(inp) {
+  sugClose();
+  const f = SUG[inp.dataset.sug]; if (!f) return;
+  const q = inp.value.trim(), n = x => typeof nz == 'function' ? nz(x) : String(x).toLowerCase();
+  let L = []; try { L = f(); } catch (e) { }
+  L = [...new Set(L)].filter(x => x && x != q && (!q || n(x).includes(n(q)))).slice(0, 8);
+  if (!L.length) return;
+  const box = document.createElement('div'); box.className = 'sug';
+  box.innerHTML = L.map(x => `<button type="button" tabindex="-1" class="sug-i">${esc(x)}</button>`).join('');
+  box.addEventListener('mousedown', ev => ev.preventDefault());   // لا يفقد الحقل التركيز عند اللمس
+  box.addEventListener('click', ev => {
+    const b = ev.target.closest('.sug-i'); if (!b) return;
+    inp.value = b.textContent; sugClose(); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.focus();
+  });
+  (inp.closest('label') || inp).after(box);
+  box.scrollIntoView({ block: 'nearest' });
+}
+document.addEventListener('focusin', e => { const t = e.target; if (t.dataset && t.dataset.sug) { t.setAttribute('autocomplete', 'off'); sugShow(t); } });
+document.addEventListener('input', e => { const t = e.target; if (t.dataset && t.dataset.sug) sugShow(t); });
+document.addEventListener('focusout', e => { if (e.target.dataset && e.target.dataset.sug) setTimeout(sugClose, 300); });
+
+/* ---------- لوحة المفاتيح: النافذة السفلية تتبع المنطقة المرئية فلا تغطيها اللوحة ولا يحدث وميض ---------- */
+(() => {
+  const vv = window.visualViewport, r = document.documentElement; if (!vv) return;
+  const f = () => { r.style.setProperty('--vvh', vv.height + 'px'); r.style.setProperty('--vvt', vv.offsetTop + 'px'); };
+  vv.addEventListener('resize', f); vv.addEventListener('scroll', f); f();
+})();
 
 /* ---------- لوحة الأرقام (مع التبديل إلى لوحة الحروف) ---------- */
 function pinPadHtml (id, ph = 'أدخل الرمز', onEnter = '') {
@@ -347,20 +409,48 @@ function restore(id) {
 }
 const row = (l, fn, sub) => `<button class="card row2" onclick="${fn}"><b>${esc(l)}</b><span class="m">${esc(sub || '')}</span></button>`;
 
-/* ---------- المظهر: وضع (تلقائي/نهاري/ليلي) × لون (أزرق/أخضر/بنفسجي/برتقالي) ---------- */
+/* ---------- المظهر: تخصيص مستقل للنهار ولليل (5 ثيمات × 8 ألوان هوية + مقياس العرض) ---------- */
 const TH_OLD = { a: 'b-a', l: 'b-l', d: 'b-d', g: 'g-l', v: 'v-d', w: 'o-l' }, FS_OLD = { 15: 16, 17: 18, 19: 20, 21: 22 };
+const TH_ACS = ['b', 't', 'g', 'v', 'r', 'o', 'i', 's', 'c'];
+const TH_L = ['light', 'warm', 'soft'], TH_D = ['navy', 'slate', 'amoled', 'softd'];
+const DS_VALS = [88, 94, 100, 108, 116];
+function thCfg() {
+  const raw = String(TH_OLD[S.cfg.th] || S.cfg.th || '');
+  if (raw.includes(':')) {
+    const [md, lt, la, dt, da, ds] = raw.split(':');
+    return {
+      md: ['a', 'l', 'd'].includes(md) ? md : 'a',
+      lt: TH_L.includes(lt) ? lt : 'light',
+      la: TH_ACS.includes(la) ? la : 'b',
+      dt: TH_D.includes(dt) ? dt : 'navy',
+      da: TH_ACS.includes(da) ? da : 'b',
+      ds: DS_VALS.includes(+ds) ? +ds : 100
+    };
+  }
+  const p = raw.split('-'), ac = TH_ACS.includes(p[0]) ? p[0] : 'b', md = ['a', 'l', 'd'].includes(p[1]) ? p[1] : 'a';
+  return { md, lt: ac == 'o' ? 'warm' : 'light', la: ac, dt: 'navy', da: ac, ds: 100 };
+}
+function thSet(patch) {
+  const c = { ...thCfg(), ...patch };
+  upd(() => { S.cfg.th = [c.md, c.lt, c.la, c.dt, c.da, c.ds].join(':'); });
+}
 function thGet() {
-  const v = TH_OLD[S.cfg.th] || S.cfg.th || 'b-a', p = String(v).split('-');
-  return [['b', 'g', 'v', 'o'].includes(p[0]) ? p[0] : 'b', ['a', 'l', 'd'].includes(p[1]) ? p[1] : 'a'];
+  const c = thCfg();
+  return [c.md == 'd' ? c.da : c.la, c.md];
 }
 function thApply(de) {
-  const [ac, md] = thGet(); let dark = md == 'd';
-  if (md == 'a') { try { dark = matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { } }
-  de.dataset.ac = ac; de.dataset.md = dark ? 'd' : 'l';
+  const c = thCfg(); let dark = c.md == 'd';
+  if (c.md == 'a') { try { dark = matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { } }
+  de.dataset.md = dark ? 'd' : 'l';
+  de.dataset.th = dark ? c.dt : c.lt;
+  de.dataset.ac = dark ? c.da : c.la;
+  de.dataset.ics = ['duo', 'line', 'hue'].includes(S.cfg.ics) ? S.cfg.ics : 'duo';
+  de.dataset.ds = c.ds >= 108 ? 'lg' : c.ds <= 94 ? 'sm' : 'md';
   de.style.setProperty('--fs', (FS_OLD[S.cfg.fs] || S.cfg.fs || 18) + 'px');
+  de.style.setProperty('--ds', (c.ds / 100).toFixed(2));
   try { const m = document.querySelector('meta[name=color-scheme]'); if (m) m.content = dark ? 'dark' : 'only light'; } catch (e) { }
 }
-try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (thGet()[1] == 'a') render(); }); } catch (e) { }
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (thCfg().md == 'a') render(); }); } catch (e) { }
 
 /* ---------- الرسم ---------- */
 const NV = [['home', 'chome', 'الرئيسية'], ['rp', 'crepair', 'الصيانة'], ['rep', 'creport', 'التقرير'], ['st', 'cmore', 'المزيد']];

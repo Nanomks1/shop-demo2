@@ -8,7 +8,7 @@ VW.st_users = () => {
   const a = isAdmin();
   return {
     t: 'المستخدمون',
-    h: S.users.map((u, i) => `<div class="card row2"><b>${esc(u.name)}</b><span class="m">${u.admin ? 'مدير' : 'موظف' + (u.pin ? '' : ' · بلا رمز')}${u.nr ? ' · بلا تنبيهات' : ''}</span>${a ? `<button class="btn s sm" onclick="uEd(${i})">تعديل</button>` : ''}</div>`).join('')
+    h: S.users.map((u, i) => `<div class="card row2"><b>${esc(u.name)}</b><span class="m">${u.admin ? 'مدير' : 'موظف' + (u.pin ? '' : ' · بلا رمز')}${u.nr ? ' · بلا تنبيهات' : ''}${u.lkmax ? ' · قفل ≤ ' + lkTxt(u.lkmax) : ''}</span>${a ? `<button class="btn s sm" onclick="uEd(${i})">تعديل</button>` : ''}</div>`).join('')
       + (a ? '<button class="btn" onclick="uAdd()">+ مستخدم</button><button class="btn s" onclick="pinCh()">تغيير رمز المدير</button><h3>الصلاحيات</h3>'
         + Object.keys(PL).map(k => `<div class="card row2"><b>${PL[k]}</b><button class="btn s sm" onclick="pTog('${k}')">${S.perm[k] == 'a' ? 'المدير فقط' : 'الجميع'}</button></div>`).join('')
         : '<p class="m">التعديل للمدير فقط.</p>')
@@ -28,6 +28,7 @@ const uEd = needAdm(function (i) {
   const u = S.users[i];
   const F = [{ k: 'r', l: 'الدور', t: 'sel', o: ['موظف', 'مدير'], v: u.admin ? 'مدير' : 'موظف' }, { k: 'p', l: 'رمز جديد للموظف (فارغ = بلا تغيير)' + (u.pin ? ' — له رمز حالياً' : ''), t: 'password' }];
   F.push({ k: 'n', l: 'التنبيهات اليومية في الرئيسية (التقرير والتعبئة)', t: 'sel', o: ['تظهر', 'مخفية'], v: u.nr ? 'مخفية' : 'تظهر' });
+  F.push({ k: 'lm', l: 'قفل تلقائي إجباري: أقصى مدة قبل القفل (لا يستطيع تجاوزها)', t: 'sel', o: ['بلا حد', ...LKO.filter(o => o[0] >= 90).map(o => o[1])], v: u.lkmax ? lkTxt(u.lkmax) : 'بلا حد' });
   F.push({ k: 'x', l: 'حذف المستخدم؟', t: 'sel', o: ['لا', 'نعم'], v: 'لا' });
   ask(u.name, F).then(v => {
     if (!v) return;
@@ -47,6 +48,7 @@ const uEd = needAdm(function (i) {
           if (u.name == S.me) admSet(false);
         }
         if (v.n == 'مخفية') u.nr = 1; else delete u.nr;
+        if (v.lm == 'بلا حد') delete u.lkmax; else { const o = LKO.find(x => x[1] == v.lm); if (o) u.lkmax = o[0]; }
       }
     });
   });
@@ -76,14 +78,34 @@ function setup() {
 }
 
 /* ---------- القفل: تسجيل الدخول (#lg) والقفل السريع (#lk) ---------- */
-let LAST = Date.now(), HID_AT = 0;
+/* ---------- القفل التلقائي: مدة شخصية (الافتراضي 90 ث) + سقف إجباري يحدده المدير لكل مستخدم ---------- */
+let LAST = Date.now();
 ['touchstart', 'click', 'keydown'].forEach(e => addEventListener(e, () => { LAST = Date.now(); }, true));
+const lkStore = () => { try { localStorage.setItem('shopLast', String(LAST)); } catch (e) { } };
+setInterval(lkStore, 5000);
+const LKO = [[30, '30 ثانية'], [90, '90 ثانية'], [180, '3 دقائق'], [300, '5 دقائق'], [600, '10 دقائق'], [1800, '30 دقيقة'], [3600, 'ساعة']];
+const lkMe = () => S.users.find(x => x.name == S.me) || null;
+const lkCap = () => (lkMe() || {}).lkmax || 0;   // السقف (ثوانٍ) الذي حدده المدير لهذا المستخدم، 0 = بلا سقف
+const lkSecs = () => { const p = +S.cfg.lkp || 90, c = lkCap(); return c ? Math.min(p, c) : p; };
+const lkTxt = s => (LKO.find(o => o[0] == s) || [0, s + ' ثانية'])[1];
+function lkNeeded() {
+  if (!S.users.length || !S.pin) return false;
+  const u = lkMe();
+  return !(u && !u.admin && !u.pin);   // موظف بلا رمز لا يستطيع فتح القفل، فلا نقفل عليه
+}
+function lkEd() {
+  const c = lkCap(), O = LKO.filter(o => !c || o[0] <= c);
+  ask('القفل التلقائي', [{ k: 't', l: 'يقفل التطبيق بعد' + (c ? ' (الحد الأقصى حدّده المدير)' : ''), t: 'sel', o: O.map(o => o[1]), v: lkTxt(lkSecs()) }]).then(v => {
+    const o = v && O.find(x => x[1] == v.t); if (o) upd(() => { S.cfg.lkp = o[0]; });
+  });
+}
 const TRIES = {};
 function tryBlocked(k, m, pad) { const t = TRIES[k] || (TRIES[k] = { n: 0, until: 0 }); if (Date.now() < t.until) { if (m) m.textContent = 'انتظر 10 ثوانٍ ثم أعد المحاولة'; pkTap(pad, 'C'); return true; } return false; }
 function tryFail(k, m, pad, txt) { const t = TRIES[k]; t.n++; pkTap(pad, 'C'); if (t.n >= 5) { t.n = 0; t.until = Date.now() + 10000; if (m) m.textContent = 'محاولات كثيرة! انتظر 10 ثوانٍ'; } else if (m) m.textContent = txt; }
 
-function closeOverlaysForLock() {
-  if (SH) hideSheet();
+function closeOverlaysForLock() {   // نغطي النافذة المفتوحة بشاشة القفل ولا نغلقها، فلا يضيع ما كتبته
+  const a = document.activeElement; if (a && a.blur) a.blur();
+  sugClose();
   const t = $('ts'); if (t) t.hidden = true;
 }
 
@@ -110,32 +132,25 @@ function lgAdm() {
 function lkShow() {
   if ($('lk')) return;
   closeOverlaysForLock();
-  document.body.insertAdjacentHTML('beforeend', `<div id="lk" class="lockscr"><div class="lockbox"><h2>${I('lock')} محل عزيز مقفل</h2><p id="lkm" class="m c">أدخل رمز القفل السريع أو رمز المدير</p>${pinPadHtml('lki', 'رمز الفتح', 'lkTry()')}<button class="btn" onclick="lkTry()">فتح التطبيق</button></div></div>`);
+  document.body.insertAdjacentHTML('beforeend', `<div id="lk" class="lockscr"><div class="lockbox"><h2>${I('lock')} محل عزيز مقفل</h2><p id="lkm" class="m c">${lkMe() && !lkMe().admin ? 'أدخل رمزك' : 'أدخل رمز المدير'}</p>${pinPadHtml('lki', 'رمز الفتح', 'lkTry()')}<button class="btn" onclick="lkTry()">فتح التطبيق</button></div></div>`);
 }
 function lkTry() {
   const m = $('lkm'), el = $('lki');
   if (tryBlocked('lk', m, 'lki')) return;
   const c = el ? el.value : '', u = S.users.find(x => x.name == S.me);
-  if (c && (hv(c, S.cfg.lk) || hv(c, S.pin) || (u && u.pin && hv(c, u.pin)))) { TRIES.lk = null; localStorage.removeItem('shopLock'); $('lk').remove(); LAST = Date.now(); }
+  if (c && ((u && u.pin && hv(c, u.pin)) || hv(c, S.pin))) { TRIES.lk = null; localStorage.removeItem('shopLock'); $('lk').remove(); LAST = Date.now(); lkStore(); }
   else tryFail('lk', m, 'lki', 'الرمز خاطئ، حاول مرة أخرى');
 }
-function lkSet(go2) {
-  if (!isAdmin()) return toast('للمدير فقط');
-  ask('رمز القفل السريع', [{ k: 'p', l: 'اختر رمزاً لقفل وفتح التطبيق بسرعة', t: 'password' }]).then(v => { if (v && v.p) { upd(() => S.cfg.lk = hs(v.p)); if (go2 === true) lockNow(); } });
-}
 function lockNow() {
-  if (!S.cfg.lk && !S.pin) return isAdmin() ? lkSet(true) : toast('المدير يعيّن رمز القفل من المزيد');
+  if (!S.pin) return toast('لم يُعيَّن رمز المدير بعد');
+  if (!lkNeeded()) return toast('لا رمز لك بعد: اطلب من المدير تعيين رمز لك');
   try { localStorage.setItem('shopLock', '1'); } catch (e) { }
   lkShow();
 }
-addEventListener('visibilitychange', () => {
-  if (document.hidden) HID_AT = Date.now();
-  else if (HID_AT && Date.now() - HID_AT > 90000 && S.users.length && (S.cfg.lk || S.pin)) lockNow();
-});
+const lkDue = () => lkNeeded() && !$('lk') && !$('lg') && Date.now() - LAST > lkSecs() * 1000;
+addEventListener('visibilitychange', () => { if (document.hidden) lkStore(); else if (lkDue()) lockNow(); });
 setInterval(() => {
-  const idle = (S.cfg.alk ?? DL0.alk) * 60000;
-  if (S.users.length && S.pin && Date.now() - LAST > idle) {
-    if (isAdmin() && !$('lg')) lgShow();
-    else if ((S.cfg.lk || S.pin) && !$('lk') && !$('lg')) lockNow();
-  }
-}, 15000);
+  if ([...document.querySelectorAll('video')].some(v => v.srcObject && !v.paused)) LAST = Date.now();   // أثناء مسح الكاميرا لا نقفل
+  if (!lkDue()) return;
+  if (isAdmin()) lgShow(); else lockNow();
+}, 5000);

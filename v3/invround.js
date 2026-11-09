@@ -103,7 +103,7 @@ function jlCompactRow(i) {
   if (i.sec == 'case') {
     const s = csSt(i), gSum = typeof csGSummaryTxt == 'function' ? csGSummaryTxt(i) : 'المجموع ' + csTot(i);
     const chips = typeof csChipsHtml == 'function' ? csChipsHtml(i, true) : '';
-    return `<div class="card cmp jl-row"><div class="row2"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="csQuickNote('${i.id}')"><b>بوشيط ${esc(i.name)}</b><div class="m">${esc(gSum)}${i.price ? ' · ' + esc(fmtDh(i.price)) : ''} · ${dBadge}</div></div>`
+    return `<div class="card cmp jl-row"><div class="row2"><span class="dotl" style="background:${DT[s]}"></span><div class="cmp-main" onclick="csOpen('${i.id}')"><b>بوشيط ${esc(i.name)}</b><div class="m">${esc(gSum)}${i.price ? ' · ' + esc(fmtDh(i.price)) : ''} · ${dBadge}</div></div>`
       + `<button class="rck" title="تأكيد كما هو" onclick="rCf('${i.id}')">${I('check')}</button></div>${chips}</div>`;
   }
   if (i.sec == 'acc') {
