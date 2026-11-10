@@ -15,7 +15,8 @@ const LOC = { m: 'عند المعلم', s: 'الرف' };   // مكان الها�
 const DVO = ['— اختر —', 'جُرِّب مع الزبون وهو يعمل', 'سُلِّم بدون تجربة مع الزبون'];
 const WAR_OPTS = [[0, 'بدون ضمان'], [3, '3 أيام'], [7, '7 أيام'], [15, '15 يوم'], [30, '30 يوم']];
 const WAR_SEL = ['بدون ضمان (0 يوم)', '3 أيام', '7 أيام', '15 يوم', '30 يوم'];
-let ZP = [], ZK = [], ZI = '', ZD = 0, ZR = {}, ZW = 0, GPM = [];
+let ZP = [], ZK = [], ZI = '', ZD = 0, ZR = {}, ZW = 0, GPM = [], RP_MDS = [];
+const RPX = {};
 const rf = id => S.rp.find(r => r.id == id);
 const rnum = t => waNum(t);
 const rph8 = t => rnum(t).slice(-8);
@@ -24,6 +25,7 @@ const d0 = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTim
 const dh = p => sn1(p) ? String(p).trim() + ' درهم' : (p || '');
 const tOf = r => r.st == 'dn' ? r.t2 : r.st == 'rd' ? (r.t1 || r.t0) : r.t0;
 const isLateRp = r => r.st == 'rd' && Math.floor((Date.now() - (r.t1 || r.t0)) / 864e5) > 15;
+const isStaleIn = r => r.st == 'in' && Math.floor((Date.now() - r.t0) / 864e5) >= 3;
 const inR = t => {
   const f = V.d || 'all', n = d0(Date.now()); if (f == 'all') return 1; if (!t) return 0;
   if (f == 'today') return d0(t) == n; if (f == 'yest') return d0(t) == n - 864e5;
@@ -87,31 +89,52 @@ function cleanOldRpMedia() {
 }
 cleanOldRpMedia();
 
-/* ---------- بطاقة الصيانة (مرتبة وأزرارها واضحة) ---------- */
+/* ---------- بطاقة الصيانة المطوية (3 أسطر أساسية + فتح التفاصيل بالضغط) ---------- */
+function rpTog(id) {
+  RPX[id] = !RPX[id];
+  if (V.v == 'rp' && $('rl')) rpL();
+  else if ($('res') && Q) sq(Q, 1);
+  else render();
+}
 function rc(r) {
-  const n = Math.floor((Date.now() - r.t0) / 864e5), w = r.st == 'rd' ? Math.floor((Date.now() - (r.t1 || r.t0)) / 864e5) : 0, i = r.id, im = rImg(r), wi = warInfo(r);
-  const bCls = w > 15 || (r.st == 'rd' && r.res == 'fail') ? 'rp-late' : r.st == 'rd' && r.res == 'ok' ? 'rp-ok' : r.st == 'in' ? 'rp-in' : '';
+  const n = Math.floor((Date.now() - r.t0) / 864e5), w = r.st == 'rd' ? Math.floor((Date.now() - (r.t1 || r.t0)) / 864e5) : 0, i = r.id, im = rImg(r), wi = warInfo(r), open = !!RPX[i];
+  const bCls = w > 15 || (r.st == 'rd' && r.res == 'fail') || isStaleIn(r) ? 'rp-late' : r.st == 'rd' && r.res == 'ok' ? 'rp-ok' : r.st == 'in' ? 'rp-in' : '';
   const oDebts = r.st != 'dn' ? rpDebts(r.tel, r.name) : [], oSum = oDebts.length ? rpDebtSum(oDebts) : 0;
   const B = (t, f, p) => `<button class="btn ${p ? '' : 's'} sm" onclick="${f}">${t}</button>`;
-  const locHtml = r.st == 'in' && shown('rp', 'loc') ? `<span style="display:inline-flex;gap:4px">${Object.keys(LOC).map(k => `<button class="tag ${r.loc == k ? 'on' : ''}" style="margin:0;padding:3px 9px;font-size:.76rem" onclick="rLoc('${i}','${k}')">${LOC[k]}</button>`).join('')}</span>` : '';
-  return `<div class="card ${bCls}"><div class="row2">${im ? `<img onclick="rpZoom('${i}')" src="${im}" style="cursor:pointer;width:56px;height:56px;object-fit:cover;border-radius:10px">` : ''}<div style="flex:1"><b>${r.tk ? `<span class="tk-b">#${esc(r.tk)}</span>` : ''}${esc(r.name)}</b><div class="m">${esc(r.dev)} — ${esc(r.fault)}</div></div>${locHtml}${(r.pat || []).length > 1 ? `<svg viewBox="0 0 120 120" width="48">${PI(r.pat)}</svg>` : ''}</div>`
+  const locHtml = r.st == 'in' && shown('rp', 'loc') ? `<span class="rp-locs">${Object.keys(LOC).map(k => `<button class="tag ${r.loc == k ? 'on' : ''}" onclick="rLoc('${i}','${k}')">${LOC[k]}</button>`).join('')}</span>` : '';
+  const stBadges = (r.st == 'in' ? (n >= 3 ? `<span class="rp-bdg w">متأخر ${n}ي</span>` : n > 0 ? `<span class="rp-bdg">${n}ي</span>` : '') : '')
+    + (r.st == 'rd' ? (w > 15 ? `<span class="rp-bdg r">منسي ${w}ي</span>` : '') + ((r.calls || []).length ? `<span class="rp-bdg g">تم التبليغ ✓</span>` : `<span class="rp-bdg w">لم يُبلَّغ</span>`) + (r.res && r.res != 'ok' ? `<span class="rp-bdg r">${RES[r.res]}</span>` : '') : '')
+    + (r.st == 'dn' ? `<span class="rp-bdg g">المقبوض: ${esc(dh(r.paid))}</span>` + (wi && wi.active ? `<span class="rp-bdg g">ضمان ${wi.daysLeft}ي</span>` : '') : '')
+    + (!open && (r.lock || (r.pat || []).length > 1) ? `<span class="rp-bdg">${I('lock')}</span>` : '');
+  const quickRow = r.st == 'in' ? `<div class="sub">${B('مصلوح', `rSt('${i}','ok')`, 1)}${B('غير مصلوح', `rSt('${i}','fail')`)}${B('رفض', `rSt('${i}','ref')`)}</div>`
+    : r.st == 'rd' ? `<div class="sub">${B('تسليم', `rDV('${i}')`, 1)}${B(I('send') + ' واتساب', `rWA('${i}')`)}${r.tel ? `<a href="tel:${esc(r.tel)}" class="btn s sm rp-a">${I('phone')} اتصال</a>` : ''}</div>`
+    : (typeof dbtRp == 'function' ? dbtRp(r) : '');
+  const details = !open ? '' : `<div class="rp-det">`
+    + ((im || (r.pat || []).length > 1) ? `<div class="row2">${im ? `<img class="rp-th" onclick="rpZoom('${i}')" src="${im}">` : ''}${(r.pat || []).length > 1 ? `<svg viewBox="0 0 120 120" width="48">${PI(r.pat)}</svg>` : ''}</div>` : '')
+    + `<div class="m">استلام: <bdi>${fd(r.t0)}</bdi> · ${esc(r.by)}${n && r.st != 'dn' ? ' · منذ ' + n + ' يوم' : ''}${r.dep ? ' · العربون: ' + esc(dh(r.dep)) : ''}</div>`
+    + (r.st == 'dn' ? `<div class="m">تسليم: <bdi>${fd(r.t2)}</bdi> · ${esc(r.dby || '')} · المقبوض: <b>${esc(dh(r.paid))}</b></div>` : '')
+    + ((r.chk || []).length ? `<div class="m">الحالة: ${esc(r.chk.join('، '))}</div>` : '')
+    + (r.lock ? `<div class="m">PIN: <b>${esc(r.lock)}</b></div>` : '')
+    + ((r.calls || []).length ? `<div class="m">التبليغ/الاتصالات (${r.calls.length}): ${esc(r.calls[r.calls.length - 1])}</div>` : '')
+    + fxShow(r) + (r.imei ? `<div class="m">IMEI: <bdi>${esc(r.imei)}</bdi></div>` : '')
+    + (wi ? `<div class="m ${wi.active ? 'rp-wg' : ''}">${I('shield')} ${esc(wi.label)}</div>` : '')
+    + (r.st == 'dn' ? (r.tst ? `<div class="m rp-wg">${I('check')} جُرِّب مع الزبون وسُلِّم مصلوحاً (${esc(r.dby || '')})</div>` : (r.res == 'ok' ? '<div class="m">سُلِّم بدون توثيق التجربة</div>' : '')) + (r.dnote ? `<div class="m">ملاحظة التسليم: ${esc(r.dnote)}</div>` : '') : '')
+    + `<div class="sub">${r.st == 'rd' ? B('اتصلت', `rCL('${i}')`) + B('إرجاع للمحل', `rSt('${i}','in')`) : ''}${r.tel && r.st != 'rd' ? `<a href="tel:${esc(r.tel)}" class="btn s sm rp-a">${I('phone')} اتصال</a>` : ''}${r.st != 'dn' && !r.note ? B('+ ملاحظة', `rNote('${i}')`) : ''}${B('تعديل', `rEd('${i}')`)}<button class="btn s sm del" onclick="rDel('${i}')">حذف</button></div>`
+    + `</div>`;
+  return `<div class="card cmp ${bCls}">`
+    + `<div class="rp-hd" onclick="rpTog('${i}')">${r.tk ? `<span class="tk-b">#${esc(r.tk)}</span>` : ''}<b>${esc(r.name)}</b>${r.tel ? `<span class="rp-tel"><bdi>${esc(r.tel)}</bdi></span>` : ''}${r.cap ? `<span class="cmp-pr">${esc(dh(r.cap))}</span>` : ''}<span class="rp-chv">${open ? '▴' : '▾'}</span></div>`
+    + `<div class="rp-mid"><div class="rp-dev" onclick="rpTog('${i}')"><span>${esc(r.dev)} — ${esc(r.fault)}</span>${stBadges}</div>${locHtml}</div>`
     + (r.note ? `<div class="rnote" onclick="rNote('${i}')" title="اضغط لتعديل الملاحظة">${I('chat')}<span>${esc(r.note)}</span></div>` : '')
-    + `<div class="row2" style="margin-top:4px;flex-wrap:wrap;gap:6px"><span class="m"><bdi>${esc(r.tel)}</bdi> · استلام: <bdi>${fd(r.t0)}</bdi> · ${esc(r.by)}${n && r.st != 'dn' ? ' · منذ ' + n + ' يوم' : ''}</span>${r.cap ? `<span class="cmp-pr" style="margin-inline-start:auto">السعر: ${esc(dh(r.cap))}${r.dep ? ' (عربون ' + esc(r.dep) + ')' : ''}</span>` : (r.dep ? `<span class="m" style="margin-inline-start:auto">العربون: ${esc(r.dep)}</span>` : '')}</div>`
-    + (r.st == 'dn' ? `<div class="m">تسليم: <bdi>${fd(r.t2)}</bdi> · ${esc(r.dby || '')} · المقبوض: <b>${esc(dh(r.paid))}</b></div>` : '') + (typeof dbtRp == 'function' ? dbtRp(r) : '')
-    + (oSum > 0 ? `<div class="rs" style="color:#dc2626;cursor:pointer" onclick="go('dbt')">${I('alert')} تنبيه: على هذا الزبون دين مفتوح (${oSum} درهم)</div>` : '')
-    + ((r.chk || []).length ? `<div class="m">الحالة: ${esc(r.chk.join('، '))}</div>` : '') + (r.lock ? `<div class="m">PIN: ${esc(r.lock)}</div>` : '') + (w > 15 ? `<div class="rs">منسي منذ ${w} يوم</div>` : '')
-    + ((r.calls || []).length ? `<div class="m">اتصالات: ${r.calls.length}</div>` : '') + (r.st != 'in' && r.res ? (r.st == 'rd' && r.res != 'ok' ? `<div style="color:#dc2626;font-weight:700">${RES[r.res]}</div>` : `<div class="m">${RES[r.res]}</div>`) : '')
-    + fxShow(r) + (r.imei ? `<div class="m">IMEI: <bdi>${esc(r.imei)}</bdi></div>` : '') + (wi ? `<div class="m" style="color:${wi.active ? '#16a34a' : '#64748b'};font-weight:700">${I('shield')} ${esc(wi.label)}</div>` : '')
-    + (r.st == 'dn' ? (r.tst ? `<div class="m" style="color:#16a34a;font-weight:700">${I('check')} جُرِّب مع الزبون وسُلِّم مصلوحاً (${esc(r.dby || '')})</div>` : (r.res == 'ok' ? '<div class="m">سُلِّم بدون توثيق التجربة</div>' : '')) + (r.dnote ? `<div class="m">ملاحظة التسليم: ${esc(r.dnote)}</div>` : '') : '')
-    + (r.st == 'in' ? `<div class="sub">${B('مصلوح', `rSt('${i}','ok')`, 1)}${B('غير مصلوح', `rSt('${i}','fail')`)}${B('رفض', `rSt('${i}','ref')`)}</div>`
-      : r.st == 'rd' ? `<div class="sub">${B('تسليم', `rDV('${i}')`, 1)}${B('إبلاغ واتساب', `rWA('${i}')`)}${B('اتصلت', `rCL('${i}')`)}${B('إرجاع للمحل', `rSt('${i}','in')`)}</div>` : '')
-    + `<div class="sub">${r.tel ? `<a href="tel:${esc(r.tel)}" class="btn s sm" style="text-decoration:none;display:inline-flex;align-items:center">${I('phone')} اتصال</a>` : ''}${r.st != 'dn' && !r.note ? B('+ ملاحظة', `rNote('${i}')`) : ''}${B('تعديل', `rEd('${i}')`)}<button class="btn s sm" style="flex:0 0 auto;padding:0 12px;color:#ef4444" onclick="rDel('${i}')">حذف</button></div></div>`;
+    + (oSum > 0 ? `<div class="rs rp-dbt" onclick="go('dbt')">${I('alert')} تنبيه: على هذا الزبون دين مفتوح (${oSum} درهم)</div>` : '')
+    + quickRow + details + `</div>`;
 }
 function rpList() {
   const q = nz(V.q || ''), tab = V.tab || 'in', all = V.all && q, sf = V.sf || '';
   let a = S.rp.filter(r => (all || tabOf(r) == tab) && inR(tOf(r)) && (!q || nzOf(r, rpText).includes(q)));
   if (!all) {
     if (sf == 'late' && (tab == 'rd' || tab == 'nf')) a = a.filter(isLateRp);
+    else if (sf == 'nc' && (tab == 'rd' || tab == 'nf')) a = a.filter(r => !(r.calls && r.calls.length));
+    else if (sf == 'stale' && tab == 'in') a = a.filter(isStaleIn);
     else if (sf == 'war' && tab == 'dn') a = a.filter(r => { const w = warInfo(r); return w && w.active; });
     else if ((sf == 'm' || sf == 's') && tab == 'in') a = a.filter(r => r.loc == sf);
   }
@@ -124,22 +147,25 @@ const rpL = () => { if ($('rl')) $('rl').innerHTML = rpList(); };
 
 function rpSubFiltersHtml(tab) {
   const sf = V.sf || '';
-  if (tab == 'in' && shown('rp', 'loc')) {
+  if (tab == 'in') {
     const mCnt = S.rp.filter(r => r.st == 'in' && r.loc == 'm').length;
     const sCnt = S.rp.filter(r => r.st == 'in' && r.loc == 's').length;
-    if (!mCnt && !sCnt) return '';
+    const stlCnt = S.rp.filter(isStaleIn).length;
+    if (!mCnt && !sCnt && !stlCnt && !sf) return '';
     return `<div class="sec-tags" style="padding:6px 0 0;border:0">`
       + `<button class="tag ${!sf ? 'on' : ''}" onclick="V.sf='';render()">الكل</button>`
-      + `<button class="tag ${sf == 'm' ? 'on' : ''}" onclick="V.sf=V.sf=='m'?'':'m';render()">عند المعلم (${mCnt})</button>`
-      + `<button class="tag ${sf == 's' ? 'on' : ''}" onclick="V.sf=V.sf=='s'?'':'s';render()">في الرف (${sCnt})</button>`
+      + (shown('rp', 'loc') ? `<button class="tag ${sf == 'm' ? 'on' : ''}" onclick="V.sf=V.sf=='m'?'':'m';render()">عند المعلم (${mCnt})</button><button class="tag ${sf == 's' ? 'on' : ''}" onclick="V.sf=V.sf=='s'?'':'s';render()">في الرف (${sCnt})</button>` : '')
+      + (stlCnt || sf == 'stale' ? `<button class="tag ${sf == 'stale' ? 'on' : ''}" onclick="V.sf=V.sf=='stale'?'':'stale';render()">${I('alert')} متأخر +3 أيام (${stlCnt})</button>` : '')
       + `</div>`;
   }
   if (tab == 'rd' || tab == 'nf') {
+    const ncCnt = S.rp.filter(r => tabOf(r) == tab && !(r.calls && r.calls.length)).length;
     const lateCnt = S.rp.filter(r => tabOf(r) == tab && isLateRp(r)).length;
-    if (!lateCnt && sf != 'late') return '';
+    if (!ncCnt && !lateCnt && !sf) return '';
     return `<div class="sec-tags" style="padding:6px 0 0;border:0">`
       + `<button class="tag ${!sf ? 'on' : ''}" onclick="V.sf='';render()">الكل</button>`
-      + `<button class="tag ${sf == 'late' ? 'on' : ''}" onclick="V.sf=V.sf=='late'?'':'late';render()">${I('alert')} منسي +15 يوم (${lateCnt})</button>`
+      + (ncCnt || sf == 'nc' ? `<button class="tag ${sf == 'nc' ? 'on' : ''}" onclick="V.sf=V.sf=='nc'?'':'nc';render()">لم يُبلَّغ (${ncCnt})</button>` : '')
+      + (lateCnt || sf == 'late' ? `<button class="tag ${sf == 'late' ? 'on' : ''}" onclick="V.sf=V.sf=='late'?'':'late';render()">${I('alert')} منسي +15 يوم (${lateCnt})</button>` : '')
       + `</div>`;
   }
   if (tab == 'dn') {
@@ -151,6 +177,14 @@ function rpSubFiltersHtml(tab) {
       + `</div>`;
   }
   return '';
+}
+
+function rpScanQ() {
+  bcScan(c => {
+    V.q = String(c || '').trim();
+    V.all = 1; V.rlim = 40;
+    render();
+  });
 }
 
 VW.rp = () => {
@@ -166,7 +200,7 @@ VW.rp = () => {
       }).join('')
       + `</div>`
       + rpSubFiltersHtml(tab)
-      + `<input style="margin:10px 0 6px" placeholder="ابحث: تذكرة (A101)، اسم، رقم، جهاز، عطل" value="${esc(V.q)}" oninput="V.q=this.value;V.rlim=40;rpL()">`
+      + `<div class="row2 rp-srch"><input placeholder="ابحث: تذكرة (A101)، اسم، رقم، جهاز، عطل" value="${esc(V.q)}" oninput="V.q=this.value;V.rlim=40;rpL()"><button type="button" class="btn s sm" onclick="rpScanQ()" title="مسح IMEI بالكاميرا">${I('scan')}</button></div>`
       + `<div class="row2" style="gap:6px"><select style="flex:1;margin:0" aria-label="التاريخ" onchange="V.d=this.value;V.rlim=40;render()">${FL.map(([k, l]) => `<option value="${k}" ${(V.d || 'all') == k ? 'selected' : ''}>${k == 'all' ? 'كل التواريخ' : l}</option>`).join('')}</select><button class="tool-pill ${V.all ? 'on' : ''}" onclick="V.all=!V.all;render()">كل التبويبات</button></div>`
       + `${V.d == 'date' ? `<input type="date" style="margin-top:6px" value="${V.dt || ''}" onchange="V.dt=this.value;render()">` : ''}`
       + `</div>`
@@ -272,9 +306,10 @@ function rDV(id, pre) {
     });
   });
 }
-/* واتساب: إبلاغ الزبون بجاهزية الهاتف فقط (مع رقم التذكرة وIMEI والضمان) */
+/* واتساب: إبلاغ الزبون بجاهزية الهاتف فقط (مع تسجيل التبليغ تلقائياً) */
 function rWA(id) {
   const r = rf(id); if (!r || !rnum(r.tel)) return toast('لا يوجد رقم لهذا الزبون: عدّل السجل وأضف الرقم');
+  if (r.st == 'rd') { (r.calls = r.calls || []).push(fd(Date.now()) + ' واتساب ' + S.me); save(); render(); }
   const c = sn1(r.cap) ? ' تكلفة الإصلاح: ' + r.cap.trim() + (r.dep ? '، العربون: ' + r.dep : '') + '.' : '';
   const dev = r.dev + (r.tk ? ` (تذكرة #${r.tk})` : '') + (r.imei ? ` [IMEI: ${r.imei}]` : '') + ((+r.war > 0 && r.res == 'ok') ? ` (الضمان: ${r.war} يوم)` : '');
   const s = r.res == 'ok' ? `هاتفك ${dev} جاهز في المحل.${c}` : r.res == 'fail' ? `للأسف تعذّر إصلاح هاتفك ${dev}. يمكنك استلامه من المحل.` : `هاتفك ${dev} جاهز للاستلام بدون إصلاح.`;
@@ -308,9 +343,9 @@ function rForm(rec) {
     + rpDatalists()
     + `<div class="row2" style="gap:8px;align-items:flex-end"><label style="flex:1">اسم الزبون<input id="r_n" data-sug="rn" value="${esc(rec.name || '')}" oninput="rH(1)"></label><label style="flex:1">رقم الهاتف<input id="r_t" type="tel" value="${esc(rec.tel || '')}" oninput="rH()"></label></div><div id="rh" class="m" style="margin-top:4px"></div>`
     + `<label>نوع الهاتف (اكتب أو اختر الماركة تحته)<input id="r_v" data-sug="rd" value="${esc(rec.dev || '')}" placeholder="مثال: Samsung A15" oninput="syncRpTags();checkDeviceHistory();suggestGuidePrice()"></label>`
-    + `<div id="rp_br_tags" style="margin:4px 0 6px">${S.tags.brand.map((b, j) => `<button type="button" class="tag rp-br-tg" onclick="pickRpBrand(${j})">${esc(b)}</button>`).join('')}</div><div id="rp_dev_hist" class="m" style="color:#d97706;font-weight:700"></div>`
+    + `<div id="rp_br_tags">${S.tags.brand.map((b, j) => `<button type="button" class="tag rp-br-tg" onclick="pickRpBrand(${j})">${esc(b)}</button>`).join('')}</div><div id="rp_md_tags"></div><div id="rp_dev_hist" class="m" style="color:#d97706;font-weight:700"></div>`
     + `<label>العطل / المشكل (اكتب أو اختر من الأعطال تحته)<input id="r_f" value="${esc(rec.fault || '')}" placeholder="مثال: تغيير شاشة" oninput="syncRpTags();suggestGuidePrice()"></label>`
-    + `<div id="rp_fl_tags" style="margin:4px 0 6px">${S.tags.fault.map((x, j) => `<button type="button" class="tag rp-fl-tg" onclick="pickRpFault(${j})">${esc(x)}</button>`).join('')}</div>`
+    + `<div id="rp_fl_tags">${S.tags.fault.map((x, j) => `<button type="button" class="tag rp-fl-tg" onclick="pickRpFault(${j})">${esc(x)}</button>`).join('')}</div>`
     + `<div id="rp_price_hint" style="margin:4px 0"></div>`
     + `<div class="row2" style="gap:8px;align-items:flex-end"><label style="flex:1.3"${hh('rp', 'cap')}>السعر المتفق (أو: اتصل)<input id="r_c" value="${esc(rec.cap || '')}" placeholder="مثال: 150"></label><label style="flex:1"${hh('rp', 'dep')}>العربون (اختياري)<input id="r_d" type="tel" value="${esc(rec.dep || '')}" placeholder="0"></label></div>`
     + `<div${hh('rp', 'chk')}><label>حالة الجهاز عند الاستلام</label><div id="rk"></div></div>`
@@ -326,13 +361,38 @@ function rForm(rec) {
   rKc(); rH(); fxR(); syncRpTags(); checkDeviceHistory(); suggestGuidePrice();
 }
 
-/* تلوين وسوم الماركات والأعطال المختارة تلقائياً ليعرف المستخدم ما ضغط عليه */
+function rpBrandModels(b) {
+  if (!b) return [];
+  const lb = b.toLowerCase(), cnt = {};
+  const add = m => { m = String(m || '').trim(); if (!m || m.toLowerCase() == lb) return; cnt[m] = (cnt[m] || 0) + 1; };
+  ph().forEach(i => { if (String(i.brand || '').toLowerCase() == lb) add(i.name); });
+  const strip = s => { s = String(s || '').trim(); return s.toLowerCase().startsWith(lb) ? s.slice(b.length).trim() : ''; };
+  (S.guide || []).forEach(g => add(strip(g.m)));
+  (S.rp || []).forEach(r => add(strip(r.dev)));
+  return Object.keys(cnt).sort((a, c) => cnt[c] - cnt[a]).slice(0, 8);
+}
+function pickRpModel(j) {
+  const m = RP_MDS[j], el = $('r_v'); if (!m || !el) return;
+  const cur = el.value.trim(), b = S.tags.brand.find(x => x && cur.toLowerCase().startsWith(String(x).toLowerCase())) || '';
+  el.value = (b ? b + ' ' : '') + m;
+  syncRpTags(); checkDeviceHistory(); suggestGuidePrice();
+}
+
+/* تلوين وسوم الماركات والأعطال المختارة تلقائياً + عرض أشهر موديلات الماركة */
 function syncRpTags() {
-  const dev = (($('r_v') || {}).value || '').trim().toLowerCase();
+  const dev = (($('r_v') || {}).value || '').trim(), dl = dev.toLowerCase();
+  let curB = '';
   document.querySelectorAll('.rp-br-tg').forEach((btn, j) => {
-    const b = String(S.tags.brand[j] || '').toLowerCase();
-    btn.classList.toggle('on', !!b && dev.startsWith(b));
+    const b = String(S.tags.brand[j] || ''), on = !!b && dl.startsWith(b.toLowerCase());
+    if (on) curB = b;
+    btn.classList.toggle('on', on);
   });
+  const mBox = $('rp_md_tags');
+  if (mBox) {
+    RP_MDS = rpBrandModels(curB);
+    const rest = curB ? dev.slice(curB.length).trim().toLowerCase() : '';
+    mBox.innerHTML = RP_MDS.map((m, j) => `<button type="button" class="tag ${rest == m.toLowerCase() ? 'on' : ''}" onclick="pickRpModel(${j})">${esc(m)}</button>`).join('');
+  }
   const pts = (($('r_f') || {}).value || '').split('،').map(s => s.trim()).filter(Boolean);
   document.querySelectorAll('.rp-fl-tg').forEach((btn, j) => {
     btn.classList.toggle('on', pts.includes(S.tags.fault[j]));
